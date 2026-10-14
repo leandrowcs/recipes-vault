@@ -3,7 +3,9 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [react()],
+  server: { fs: { allow: ['..'] } },
   test: {
     environment: 'jsdom',
+    include: ['src/**/*.test.{ts,tsx}', 'api-tests/**/*.test.ts'],
   },
 })

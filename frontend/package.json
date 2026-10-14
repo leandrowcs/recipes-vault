@@ -6,12 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "cd .. && oxlint frontend api/import-recipe.ts",
+    "lint": "cd .. && oxlint frontend api/*.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
+    "@zxing/browser": "^0.1.5",
     "firebase": "^12.19.0",
     "lucide-react": "^1.34.0",
     "react": "^19.2.8",

@@ -9,16 +9,18 @@ import {
   LogOut,
   Package,
   Plus,
+  ScanBarcode,
   Search,
   SlidersHorizontal,
   Sparkles,
   Utensils,
   Upload,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import type { User } from 'firebase/auth'
 import { AuthGate } from './components/AuthGate'
 import { PantryView } from './components/PantryView'
+import { RecommendedRecipes } from './components/RecommendedRecipes'
 import { RecipeCard } from './components/RecipeCard'
 import { RecipeDetails } from './components/RecipeDetails'
 import { RecipeForm } from './components/RecipeForm'
@@ -30,7 +32,12 @@ import type { PantryItem, PantryItemDraft } from './types/pantry'
 import type { Recipe, RecipeDraft } from './types/recipe'
 import './App.css'
 
-type View = 'home' | 'recipes' | 'favorites' | 'import' | 'pantry'
+const FoodScanner = lazy(async () => {
+  const module = await import('./components/FoodScanner')
+  return { default: module.FoodScanner }
+})
+
+type View = 'home' | 'recipes' | 'favorites' | 'import' | 'pantry' | 'discover' | 'food'
 interface CollectionState {
   recipes: Recipe[]
   pantry: PantryItem[]
@@ -43,6 +50,8 @@ const navigation: { id: View; label: string; icon: typeof BookOpen }[] = [
   { id: 'recipes', label: 'My recipes', icon: Utensils },
   { id: 'favorites', label: 'Favorites', icon: Heart },
   { id: 'pantry', label: 'Pantry', icon: Package },
+  { id: 'discover', label: 'Discover', icon: Search },
+  { id: 'food', label: 'Scan food', icon: ScanBarcode },
   { id: 'import', label: 'Import recipe', icon: Link },
 ]
 
@@ -113,6 +122,7 @@ function RecipeVault({ user }: { user: User }) {
   const favoriteCount = recipes.filter((recipe) => recipe.isFavorite).length
   const categories = [...new Set(recipes.map((recipe) => recipe.category))].sort((a, b) => a.localeCompare(b))
   const selectedRecipe = recipes.find((recipe) => recipe.id === detailId) ?? null
+  const favoriteRecipeNames = recipes.filter((recipe) => recipe.isFavorite).map((recipe) => recipe.title)
   const visibleRecipes = useMemo(() => {
     const pageRecipes = view === 'favorites' ? recipes.filter((recipe) => recipe.isFavorite) : recipes
     const filtered = filterRecipes(pageRecipes, {
@@ -352,6 +362,10 @@ function RecipeVault({ user }: { user: User }) {
         ? 'Bring a recipe along.'
         : view === 'pantry'
           ? 'What’s in your kitchen?'
+          : view === 'discover'
+            ? 'Find your next dish.'
+            : view === 'food'
+              ? 'Know what’s on the label.'
         : 'My recipes'
   const filteredTotal = view === 'favorites' ? favoriteCount : recipes.length
 
@@ -415,15 +429,25 @@ function RecipeVault({ user }: { user: User }) {
             <div>
               <p className="eyebrow"><Sparkles aria-hidden="true" /> YOUR PERSONAL COOKBOOK</p>
               <h1>{pageTitle}</h1>
-              <p className="welcome-copy">{view === 'import' ? 'Import available recipe details from a website.' : view === 'pantry' ? 'Keep track of ingredients you already have.' : 'Keep the recipes you love close at hand.'}</p>
+              <p className="welcome-copy">
+                {view === 'import'
+                  ? 'Import available recipe details from a website.'
+                  : view === 'pantry'
+                    ? 'Keep track of ingredients you already have.'
+                    : view === 'discover'
+                      ? 'Explore catalog recipes and get inspiration from your favorites.'
+                      : view === 'food'
+                        ? 'Scan a product and review its declared nutrition information.'
+                        : 'Keep the recipes you love close at hand.'}
+              </p>
             </div>
-            <div className="collection-count">
+            {['home', 'recipes', 'favorites'].includes(view) && <div className="collection-count">
               <span>{filteredTotal.toString().padStart(2, '0')}</span>
               <small>{view === 'favorites' ? 'favorites' : 'recipes saved'}</small>
-            </div>
+            </div>}
           </section>
 
-          {view !== 'import' && view !== 'pantry' && <section className="stats-row" aria-label="Collection summary">
+          {view !== 'import' && view !== 'pantry' && view !== 'discover' && view !== 'food' && <section className="stats-row" aria-label="Collection summary">
             <article className="stat-card">
               <span className="stat-icon"><Utensils aria-hidden="true" /></span>
               <div><strong>{recipes.length}</strong><span>Recipes saved</span></div>
@@ -438,7 +462,13 @@ function RecipeVault({ user }: { user: User }) {
             </article>
           </section>}
 
-          {view === 'pantry' ? (
+          {view === 'discover' ? (
+            <RecommendedRecipes favoriteRecipes={favoriteRecipeNames} />
+          ) : view === 'food' ? (
+            <Suspense fallback={<p className="loading-state" role="status">Loading barcode scanner…</p>}>
+              <FoodScanner />
+            </Suspense>
+          ) : view === 'pantry' ? (
             <PantryView items={pantry} isLoading={!storageReady} error={storageError} onAdd={addPantryItem} onDelete={deletePantryItem} />
           ) : view === 'import' ? (
             <section className="collection-section import-section">

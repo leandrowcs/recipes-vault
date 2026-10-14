@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 import type { Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import importRecipe from '../api/import-recipe.ts'
+import mealDb from '../api/mealdb.ts'
+import openFoodFacts from '../api/open-food-facts.ts'
 
 const localRecipeImportApi: Plugin = {
   name: 'local-recipe-import-api',
@@ -26,10 +28,31 @@ const localRecipeImportApi: Plugin = {
   },
 }
 
+const localFoodApis: Plugin = {
+  name: 'local-food-apis',
+  configureServer(server) {
+    server.middlewares.use('/api/mealdb', (request, response, next) => {
+      void mealDb(request, response).catch(next)
+    })
+    server.middlewares.use('/api/open-food-facts', (request, response, next) => {
+      void openFoodFacts(request, response).catch(next)
+    })
+  },
+  configurePreviewServer(server) {
+    server.middlewares.use('/api/mealdb', (request, response, next) => {
+      void mealDb(request, response).catch(next)
+    })
+    server.middlewares.use('/api/open-food-facts', (request, response, next) => {
+      void openFoodFacts(request, response).catch(next)
+    })
+  },
+}
+
 export default defineConfig({
   plugins: [
     react(),
     localRecipeImportApi,
+    localFoodApis,
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['recipes-vault-logo.svg', 'icons/*.png'],
