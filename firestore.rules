@@ -1,0 +1,70 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isVaultOwner(uid) {
+      return request.auth != null
+        && request.auth.uid == uid
+        && request.auth.uid == 'REPLACE_WITH_OWNER_UID'
+        && request.auth.token.email_verified == true;
+    }
+
+    function validRecipe(recipeId) {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+          'id', 'title', 'description', 'imageUrl', 'sourceUrl', 'servings',
+          'prepTimeMinutes', 'cookTimeMinutes', 'difficulty', 'category', 'tags',
+          'ingredients', 'instructions', 'isFavorite', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'title', 'description', 'imageUrl', 'sourceUrl', 'servings',
+          'prepTimeMinutes', 'cookTimeMinutes', 'difficulty', 'category', 'tags',
+          'ingredients', 'instructions', 'isFavorite', 'createdAt', 'updatedAt'
+        ])
+        && data.id == recipeId
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.description is string && data.description.size() <= 5000
+        && data.imageUrl is string && data.imageUrl.size() <= 2048
+        && data.sourceUrl is string && data.sourceUrl.size() <= 2048
+        && data.servings is int && data.servings > 0
+        && data.prepTimeMinutes is int && data.prepTimeMinutes >= 0
+        && data.cookTimeMinutes is int && data.cookTimeMinutes >= 0
+        && data.difficulty in ['Easy', 'Medium', 'Hard']
+        && data.category is string && data.category.size() > 0 && data.category.size() <= 100
+        && data.tags is list && data.tags.size() <= 100
+        && data.ingredients is list && data.ingredients.size() > 0 && data.ingredients.size() <= 200
+        && data.instructions is list && data.instructions.size() > 0 && data.instructions.size() <= 200
+        && data.isFavorite is bool
+        && data.createdAt is string && data.createdAt.size() <= 40
+        && data.updatedAt is string && data.updatedAt.size() <= 40;
+    }
+
+    function validPantryItem(itemId) {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+          'id', 'name', 'quantity', 'unit', 'expirationDate', 'notes', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'name', 'quantity', 'unit', 'expirationDate', 'notes', 'createdAt', 'updatedAt'
+        ])
+        && data.id == itemId
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && data.quantity is number && data.quantity >= 0
+        && data.unit is string && data.unit.size() <= 100
+        && data.expirationDate is string && data.expirationDate.size() <= 10
+        && data.notes is string && data.notes.size() <= 2000
+        && data.createdAt is string && data.createdAt.size() <= 40
+        && data.updatedAt is string && data.updatedAt.size() <= 40;
+    }
+
+    match /users/{uid}/recipes/{recipeId} {
+      allow read, delete: if isVaultOwner(uid);
+      allow create, update: if isVaultOwner(uid) && validRecipe(recipeId);
+    }
+
+    match /users/{uid}/pantry/{itemId} {
+      allow read, delete: if isVaultOwner(uid);
+      allow create, update: if isVaultOwner(uid) && validPantryItem(itemId);
+    }
+  }
+}
