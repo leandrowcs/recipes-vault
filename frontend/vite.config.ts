@@ -32,26 +32,8 @@ export default defineConfig({
     localRecipeImportApi,
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'recipes-vault-icon.svg'],
-      manifest: {
-        id: '/',
-        name: 'Recipes Vault',
-        short_name: 'Recipes Vault',
-        description: 'A private home for your favorite recipes.',
-        start_url: '/',
-        scope: '/',
-        display: 'standalone',
-        background_color: '#101110',
-        theme_color: '#101110',
-        icons: [
-          {
-            src: '/recipes-vault-icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any',
-          },
-        ],
-      },
+      includeAssets: ['recipes-vault-logo.svg', 'icons/*.png'],
+      manifest: false,
       workbox: {
         cleanupOutdatedCaches: true,
         clientsClaim: true,

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Recipes Vault</title>
+  <desc id="desc">Ícone dividido entre um chapéu de chef branco à esquerda e uma tampa de prato branco à direita, com vapor verde sobre fundo verde-escuro.</desc>
+  <rect width="512" height="512" rx="0" fill="#063F2B"/>
+  <!-- Vapor -->
+  <g fill="#70D34A">
+    <path d="M286 222 C263 188 274 165 299 143 C317 127 319 111 309 91 C338 119 335 145 311 168 C293 185 286 201 286 222 Z"/>
+    <path d="M318 245 C300 217 309 194 329 176 C345 161 348 148 342 134 C365 155 362 179 343 198 C329 212 322 228 318 245 Z"/>
+  </g>
+  <!-- Chapéu de chef: metade esquerda -->
+  <path fill="#FFFFFF" d="M248 333 L248 159
+    C229 151 204 155 188 171
+    C178 147 153 136 130 144
+    C105 152 92 177 97 201
+    C76 210 64 232 69 254
+    C74 278 94 293 119 293
+    L126 338
+    C165 326 207 324 248 326 Z"/>
+  <path fill="#063F2B" d="M106 241 C119 264 135 276 156 277 C143 286 133 299 130 316 C128 293 120 276 106 263 Z"/>
+  <path fill="#FFFFFF" d="M126 344 C166 333 208 330 248 332 L248 365 C208 363 167 367 128 378 C123 379 120 375 120 369 L119 353 C119 349 122 346 126 344 Z"/>
+  <!-- Prato com tampa: metade direita -->
+  <path fill="#FFFFFF" d="M260 242 L260 224 C260 218 265 213 271 213 L282 213 C291 213 297 220 297 229 C297 237 291 243 282 243 L278 243 L278 251
+    C322 258 356 284 371 324
+    L371 337 L404 337
+    C398 359 376 374 348 374 L260 374 Z"/>
+  <path fill="#063F2B" d="M279 262 C318 270 345 294 357 326 L279 326 Z"/>
+  <path fill="#FFFFFF" d="M260 345 L402 345 C391 359 373 365 350 365 L260 365 Z"/>
+  <!-- Divisão central limpa -->
+  <path d="M254 151 V375" stroke="#063F2B" stroke-width="8"/>
+</svg>

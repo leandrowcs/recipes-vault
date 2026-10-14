@@ -1,4 +1,4 @@
-import { ChefHat, LogIn } from 'lucide-react'
+import { LogIn } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { firebaseConfigured, firebaseErrorMessage, firebaseSetupMissing, listenToAuth, ownerEmail, ownerUid, signInWithGoogle, signOutGoogle } from '../services/firebase'
 import type { User } from 'firebase/auth'
@@ -114,7 +114,7 @@ function AuthMessage({ title, children }: { title: string; children: ReactNode }
   return (
     <main className="auth-shell">
       <section className="auth-card">
-        <span className="brand-icon"><ChefHat aria-hidden="true" /></span>
+        <img className="auth-logo" src="/recipes-vault-logo.svg" alt="" />
         <p className="eyebrow">YOUR PRIVATE COOKBOOK</p>
         <h1>{title}</h1>
         {children}

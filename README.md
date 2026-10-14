@@ -9,6 +9,7 @@ Private recipe collection for one owner. Google sign-in protects the app, Firest
 - Cloud Firestore for recipes and pantry items.
 - Firestore security rules in `firestore.rules`; access is denied until the owner UID is configured.
 - Vercel static hosting and a serverless recipe-import endpoint.
+- Workbox PWA with the install manifest in `frontend/public/manifest.webmanifest`; PNG icons include 192px, 512px, maskable Android, and 180px Apple touch sizes.
 
 ## 1. Create the Firebase project
 

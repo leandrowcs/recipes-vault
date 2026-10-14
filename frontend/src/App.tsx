@@ -359,7 +359,7 @@ function RecipeVault({ user }: { user: User }) {
     <div className="app-shell">
       <aside className="sidebar">
         <a className="brand" href="#" onClick={(event) => { event.preventDefault(); setView('home') }}>
-          <span className="brand-icon"><ChefHat aria-hidden="true" /></span>
+          <img className="brand-logo" src="/recipes-vault-logo.svg" alt="" />
           <span className="brand-name">Recipes <strong>Vault</strong></span>
         </a>
 
@@ -384,7 +384,7 @@ function RecipeVault({ user }: { user: User }) {
 
       <div className="main-column">
         <header className="topbar">
-          <div className="mobile-brand"><ChefHat aria-hidden="true" /><strong>Recipes Vault</strong></div>
+          <div className="mobile-brand"><img src="/recipes-vault-logo.svg" alt="" /><strong>Recipes Vault</strong></div>
           <div className="topbar-caption">A home for the things you love to cook</div>
           <div className="topbar-actions">
             <span className="account-email">{user.email}</span>
