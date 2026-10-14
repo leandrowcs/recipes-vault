@@ -26,6 +26,7 @@ export function RecommendedRecipeDetails({ meal, locale, onClose }: RecommendedR
         <div className="detail-content">
           {meal.category && <p className="eyebrow">{[meal.area, meal.category].filter(Boolean).join(' · ')}</p>}
           <div className="detail-heading"><h2 id="recommended-recipe-title">{meal.name}</h2></div>
+          <p className="catalog-data-warning" role="note">{t('catalogDataWarning')}</p>
           {!meal.instructions && meal.ingredients.length === 0 ? (
             <p className="loading-state" role="status">{t('loadingDetails')}</p>
           ) : (

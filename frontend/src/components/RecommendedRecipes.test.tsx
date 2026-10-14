@@ -47,5 +47,6 @@ describe('recommended recipes', () => {
     expect(dialog.textContent).toContain('1 lb')
     expect(dialog.textContent).toContain('Sirloin steak')
     expect(dialog.textContent).toContain('Season the steak and grill until cooked.')
+    expect(dialog.textContent).toContain('TheMealDB data may differ from the linked publisher recipe')
   })
 })

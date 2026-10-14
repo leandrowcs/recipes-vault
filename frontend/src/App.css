@@ -1823,6 +1823,17 @@
   max-height: min(90vh, 900px);
 }
 
+.catalog-data-warning {
+  margin: 14px 0 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(178, 120, 19, 0.28);
+  border-radius: 9px;
+  background: rgba(220, 159, 35, 0.08);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
 .recommended-ingredients {
   display: grid;
   gap: 8px;
@@ -2490,7 +2501,7 @@
 
   .recipe-form-dialog,
   .recipe-detail-dialog {
-    width: 100%;
+    width: 90%;
     max-height: 90dvh;
     border-right: 0;
     border-bottom: 0;
