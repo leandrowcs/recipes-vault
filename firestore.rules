@@ -5,7 +5,7 @@ service cloud.firestore {
     function isVaultOwner(uid) {
       return request.auth != null
         && request.auth.uid == uid
-        && request.auth.uid == 'REPLACE_WITH_OWNER_UID'
+        && request.auth.uid == 'y4VG9G58njhdgIhn6t0C1TPbC3r1'
         && request.auth.token.email_verified == true;
     }
 

@@ -22,9 +22,14 @@ export const ownerEmail = (import.meta.env.VITE_OWNER_EMAIL ?? '').trim().toLowe
 export const ownerUid = (import.meta.env.VITE_OWNER_UID ?? '').trim()
 export const firebaseConfigured = Object.values(config).every(Boolean) && Boolean(ownerEmail)
 export const firebaseSetupMissing: string[] = [
-  ...Object.entries(config)
+  ...[
+    ['VITE_FIREBASE_API_KEY', config.apiKey],
+    ['VITE_FIREBASE_AUTH_DOMAIN', config.authDomain],
+    ['VITE_FIREBASE_PROJECT_ID', config.projectId],
+    ['VITE_FIREBASE_APP_ID', config.appId],
+  ]
     .filter(([, value]) => !value)
-    .map(([key]) => key),
+    .map(([name]) => name),
   ...(!ownerEmail ? ['VITE_OWNER_EMAIL'] : []),
 ]
 

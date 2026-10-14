@@ -53,9 +53,9 @@ export function AuthGate({ children }: AuthGateProps) {
   if (!firebaseConfigured) {
     return (
       <AuthMessage title="Firebase setup required">
-        <p>Add these Firebase values to <code>frontend/.env.local</code> for development and to the Vercel environment settings before deploying.</p>
+        <p>These variables were missing when this deployment was built. Add them in Vercel under <strong>Project Settings → Environment Variables</strong>, enable them for the environment you deployed, then redeploy.</p>
         <ul>{firebaseSetupMissing.map((name) => <li key={name}><code>{name}</code></li>)}</ul>
-        <p>See the repository README for the setup steps.</p>
+        <p>For local development, add the same values to <code>frontend/.env.local</code>. See the repository README for the setup steps.</p>
       </AuthMessage>
     )
   }
