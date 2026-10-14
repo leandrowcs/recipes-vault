@@ -19,11 +19,11 @@
   padding: 31px 18px 22px;
   overflow-y: auto;
   border-right: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255);
 }
 
 .sidebar .brand {
-  margin-bottom: 24px;
+  margin-bottom: 10px;
 }
 
 .sidebar-close {
@@ -72,8 +72,8 @@
 .sidebar-account {
   display: grid;
   gap: 10px;
-  margin-top: 24px;
-  padding-top: 16px;
+  margin-top: 5px;
+  padding-top: 5px;
   border-top: 1px solid var(--line);
 }
 
@@ -115,9 +115,8 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   width: fit-content;
-  margin: 0 0 56px 8px;
   color: var(--text);
   text-decoration: none;
 }
@@ -163,8 +162,8 @@
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 13px;
-  min-height: 46px;
+  gap: 10px;
+  min-height: 40px;
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -201,11 +200,11 @@
 
 .sidebar-note {
   display: grid;
-  gap: 9px;
+  gap: 10px;
   margin-top: auto;
-  padding: 17px 15px;
+  padding: 10px;
   border: 1px solid var(--line);
-  border-radius: 13px;
+  border-radius: 10px;
   background: linear-gradient(145deg, rgba(40, 122, 75, 0.08), rgba(40, 122, 75, 0.015));
 }
 
@@ -237,8 +236,8 @@
 .sidebar-footer {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 19px 0 0 3px;
+  gap: 10px;
+  margin: 10px 0 0;
   color: var(--faint);
   font-size: 10px;
 }
@@ -603,8 +602,8 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 19px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .collection-actions {
@@ -691,8 +690,8 @@
 .collection-controls {
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin-bottom: 20px;
+  gap: 5px;
+  margin-bottom: 5px;
 }
 
 .locale-data-notice {
@@ -1656,11 +1655,11 @@
   display: grid;
   grid-template-columns: minmax(150px, 2fr) minmax(85px, 0.7fr) minmax(100px, 1fr) minmax(150px, 1.2fr) minmax(150px, 1.3fr) auto;
   align-items: end;
-  gap: 12px;
-  margin: 20px 0;
-  padding: 17px;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 15px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--surface);
 }
 
@@ -1742,7 +1741,7 @@
 
 .discovery-intro {
   max-width: 760px;
-  margin: -5px 0 18px;
+  margin: 5px 0 5px;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.65;
@@ -2052,12 +2051,12 @@
 
 @media (max-width: 760px) {
   .sidebar {
-    z-index: 12;
+    z-index: 15;
     display: flex;
     width: min(320px, 88vw);
     height: 100dvh;
     padding: 20px 16px;
-    box-shadow: 12px 0 40px rgba(23, 43, 29, 0.12);
+    box-shadow: 15px 0 40px rgba(23, 43, 29, 0.12);
     transform: translateX(-105%);
     visibility: hidden;
     transition: transform 180ms ease, visibility 0s linear 180ms;
@@ -2156,7 +2155,7 @@
   }
 
   .welcome-copy {
-    max-width: 230px;
+    min-width: 250px;
     font-size: 11px;
     line-height: 1.5;
   }
@@ -2203,7 +2202,7 @@
   .collection-heading {
     align-items: flex-start;
     flex-wrap: wrap;
-    margin-bottom: 14px;
+    margin-bottom: 0px !important;
   }
 
   .collection-actions {
@@ -2231,7 +2230,6 @@
 
   .food-search-form {
     align-items: stretch;
-    flex-direction: column;
   }
 
   .food-search-form > .primary-button,
@@ -2250,8 +2248,8 @@
 
   .pantry-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    padding: 13px;
+    gap: 5px;
+    padding: 10px;
   }
 
   .pantry-name,
@@ -2400,7 +2398,7 @@
     left: 0;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    padding: 7px 9px calc(env(safe-area-inset-bottom, 0px) + 7px);
+    padding: 5px 5px calc(env(safe-area-inset-bottom, 0px) + 5px);
     border-top: 1px solid var(--line);
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(16px);
@@ -2419,8 +2417,8 @@
   @media (max-width: 760px) {
     .pantry-form {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      padding: 13px;
+      gap: 5px;
+      padding: 10px;
     }
 
     .pantry-name,
@@ -2479,6 +2477,9 @@
 
   .mobile-nav-item.active {
     color: var(--amber);
+    border: 1px solid var(--amber);
+    border-radius: 10px;
+    background-color: var(--amber-soft);
   }
 
   .dialog-backdrop {
