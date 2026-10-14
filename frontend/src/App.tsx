@@ -495,7 +495,7 @@ function RecipeVault({ user, locale, onLocaleChange }: { user: User; locale: Loc
           </section>}
 
           {view === 'discover' ? (
-            <RecommendedRecipes favoriteRecipes={favoriteRecipeNames} locale={locale} />
+            <RecommendedRecipes favoriteRecipes={favoriteRecipeNames} locale={locale} savedRecipes={recipes} onSaveRecipe={saveRecipe} />
           ) : view === 'food' ? (
             <Suspense fallback={<p className="loading-state" role="status">{t('scannerLoading')}</p>}>
               <FoodScanner locale={locale} />

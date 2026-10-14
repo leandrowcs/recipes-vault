@@ -1,15 +1,64 @@
-import { ExternalLink, X } from 'lucide-react'
+import { Check, ExternalLink, Plus, X } from 'lucide-react'
+import { useState } from 'react'
 import { translate, type Locale } from '../lib/locale'
 import type { MealDetails } from '../types/food'
+import type { RecipeDraft } from '../types/recipe'
 
 interface RecommendedRecipeDetailsProps {
   locale: Locale
   meal: MealDetails
+  isSaved: boolean
+  onSaveRecipe: (draft: RecipeDraft) => Promise<boolean>
   onClose: () => void
 }
 
-export function RecommendedRecipeDetails({ meal, locale, onClose }: RecommendedRecipeDetailsProps) {
+export function RecommendedRecipeDetails({ meal, locale, isSaved, onSaveRecipe, onClose }: RecommendedRecipeDetailsProps) {
   const t = (key: string) => translate(locale, key)
+  const [isSaving, setIsSaving] = useState(false)
+  const [hasSaved, setHasSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const recipeIsSaved = isSaved || hasSaved
+  const canSave = meal.ingredients.length > 0 && Boolean(meal.instructions.trim())
+
+  async function saveRecipe() {
+    if (!canSave || recipeIsSaved || isSaving) return
+    setIsSaving(true)
+    setSaveError('')
+    try {
+      const saved = await onSaveRecipe({
+        title: meal.name,
+        description: '',
+        imageUrl: meal.imageUrl,
+        sourceUrl: meal.sourceUrl,
+        servings: 2,
+        prepTimeMinutes: 0,
+        cookTimeMinutes: 0,
+        difficulty: 'Easy',
+        category: meal.category || 'Other',
+        tags: meal.area ? [meal.area] : [],
+        ingredients: meal.ingredients.map((ingredient) => ({
+          id: crypto.randomUUID(),
+          name: ingredient.name,
+          quantityText: ingredient.measure,
+          quantity: null,
+          unit: '',
+          optional: false,
+        })),
+        instructions: meal.instructions
+          .split(/\r?\n+/)
+          .map((text) => text.trim())
+          .filter(Boolean)
+          .map((text) => ({ id: crypto.randomUUID(), text })),
+      })
+      if (saved) setHasSaved(true)
+      else setSaveError(t('catalogSaveFailed'))
+    } catch {
+      setSaveError(t('catalogSaveFailed'))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="dialog-backdrop" role="presentation" onClick={onClose}>
       <section
@@ -55,8 +104,18 @@ export function RecommendedRecipeDetails({ meal, locale, onClose }: RecommendedR
             <a className="secondary-button source-link" href={meal.sourceUrl} target="_blank" rel="noreferrer">
               <ExternalLink aria-hidden="true" /> {t('originalRecipe')}
             </a>
+            <button
+              className="primary-button"
+              type="button"
+              disabled={!canSave || recipeIsSaved || isSaving}
+              onClick={() => void saveRecipe()}
+            >
+              {recipeIsSaved ? <Check aria-hidden="true" /> : <Plus aria-hidden="true" />}
+              {isSaving ? t('savingCatalogRecipe') : recipeIsSaved ? t('recipeInCollection') : t('addToCollection')}
+            </button>
             <button className="secondary-button" type="button" onClick={onClose}>{t('close')}</button>
           </div>
+          {saveError && <p className="form-error" role="alert">{saveError}</p>}
           <p className="data-attribution">{t('recipeImageCredits')} <a href="https://www.themealdb.com/" target="_blank" rel="noreferrer">TheMealDB</a> {t('originalSource')}</p>
         </div>
       </section>

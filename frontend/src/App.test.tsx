@@ -116,6 +116,52 @@ describe('recipe collection', () => {
       expect(screen.queryByRole('button', { name: 'View Everyday salad' })).toBeNull()
     })
 
+    it('adds a discovered recipe and keeps it in the collection when favoriting changes', async () => {
+      const meal = {
+        id: '52771',
+        name: 'Sirloin Steak',
+        imageUrl: 'https://example.com/sirloin.jpg',
+        sourceUrl: 'https://example.com/sirloin',
+        category: 'Beef',
+        area: 'British',
+        instructions: 'Season and grill the steak.',
+        ingredients: [{ name: 'Sirloin steak', measure: '750g' }],
+      }
+      vi.stubGlobal('fetch', vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ recipes: [{ id: meal.id, name: meal.name, imageUrl: meal.imageUrl, sourceUrl: meal.sourceUrl }] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ meal }),
+        }))
+
+      render(<App />)
+      await screen.findByRole('button', { name: 'Add recipe' })
+      fireEvent.click(screen.getAllByRole('button', { name: 'Discover' })[0])
+      fireEvent.change(screen.getByRole('textbox', { name: 'Search catalog by one ingredient' }), {
+        target: { value: 'sirloin steak' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Find recipes' }))
+      fireEvent.click(await screen.findByRole('button', { name: 'View Sirloin Steak' }))
+      fireEvent.click(await screen.findByRole('button', { name: 'Add to my recipes' }))
+
+      expect(await screen.findByRole('button', { name: 'In my recipes' })).toBeTruthy()
+      await waitFor(() => expect(testVault.snapshot.recipes).toHaveLength(1))
+      expect(testVault.snapshot.recipes[0].ingredients[0].quantityText).toBe('750g')
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'My recipes' })[0])
+      expect(await screen.findByRole('button', { name: 'View Sirloin Steak' })).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: 'Add Sirloin Steak to favorites' }))
+      await waitFor(() => expect(testVault.snapshot.recipes[0].isFavorite).toBe(true))
+      expect(screen.getByRole('button', { name: 'View Sirloin Steak' })).toBeTruthy()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Sirloin Steak from favorites' }))
+      await waitFor(() => expect(testVault.snapshot.recipes[0].isFavorite).toBe(false))
+      expect(screen.getByRole('button', { name: 'View Sirloin Steak' })).toBeTruthy()
+    })
+
     it('switches app language and persists the selected locale', async () => {
       testVault.snapshot.recipes = [{ ...backupRecipe, id: 'sample', title: 'Favorite soup', isFavorite: true }]
       render(<App />)

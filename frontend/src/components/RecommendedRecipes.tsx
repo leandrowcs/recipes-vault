@@ -2,6 +2,7 @@ import { ArrowUpRight, ChefHat, Search } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react'
 import { translate, translateError, type Locale } from '../lib/locale'
 import type { MealCard, MealDetails } from '../types/food'
+import type { Recipe, RecipeDraft } from '../types/recipe'
 
 const MealDetailsView = lazy(async () => {
   const module = await import('./RecommendedRecipeDetails')
@@ -36,9 +37,11 @@ function isMealDetails(value: unknown): value is MealDetails {
 interface RecommendedRecipesProps {
   favoriteRecipes: string[]
   locale: Locale
+  savedRecipes: Recipe[]
+  onSaveRecipe: (draft: RecipeDraft) => Promise<boolean>
 }
 
-export function RecommendedRecipes({ favoriteRecipes, locale }: RecommendedRecipesProps) {
+export function RecommendedRecipes({ favoriteRecipes, locale, savedRecipes, onSaveRecipe }: RecommendedRecipesProps) {
   const t = (key: string) => translate(locale, key)
   const [ingredient, setIngredient] = useState('')
   const [recipes, setRecipes] = useState<MealCard[]>([])
@@ -194,7 +197,15 @@ export function RecommendedRecipes({ favoriteRecipes, locale }: RecommendedRecip
       </p>
       {selectedMeal && (
         <Suspense fallback={<div className="dialog-backdrop"><p role="status">{t('loadingDetails')}</p></div>}>
-          <MealDetailsView meal={selectedMeal} locale={locale} onClose={() => setSelectedMeal(null)} />
+          <MealDetailsView
+            meal={selectedMeal}
+            locale={locale}
+            isSaved={savedRecipes.some((recipe) =>
+              recipe.sourceUrl === selectedMeal.sourceUrl ||
+              recipe.title.trim().toLocaleLowerCase() === selectedMeal.name.trim().toLocaleLowerCase())}
+            onSaveRecipe={onSaveRecipe}
+            onClose={() => setSelectedMeal(null)}
+          />
         </Suspense>
       )}
     </section>

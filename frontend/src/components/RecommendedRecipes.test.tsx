@@ -34,7 +34,8 @@ describe('recommended recipes', () => {
       })
 
     vi.stubGlobal('fetch', fetchMock)
-    render(<RecommendedRecipes favoriteRecipes={[]} locale="en-US" />)
+    const onSaveRecipe = vi.fn().mockResolvedValue(true)
+    render(<RecommendedRecipes favoriteRecipes={[]} locale="en-US" savedRecipes={[]} onSaveRecipe={onSaveRecipe} />)
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Search catalog by one ingredient' }), {
       target: { value: 'sirloin steak' },
@@ -48,5 +49,13 @@ describe('recommended recipes', () => {
     expect(dialog.textContent).toContain('Sirloin steak')
     expect(dialog.textContent).toContain('Season the steak and grill until cooked.')
     expect(dialog.textContent).toContain('TheMealDB data may differ from the linked publisher recipe')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add to my recipes' }))
+    expect(await screen.findByRole('button', { name: 'In my recipes' })).toBeTruthy()
+    expect(onSaveRecipe).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'Sirloin Steak',
+      sourceUrl: recipe.sourceUrl,
+      ingredients: [expect.objectContaining({ name: 'Sirloin steak', quantityText: '1 lb', quantity: null })],
+    }))
   })
 })
