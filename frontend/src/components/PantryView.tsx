@@ -1,8 +1,10 @@
 import { Package, Plus, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import type { PantryItem, PantryItemDraft } from '../types/pantry'
+import { translate, translateError, type Locale } from '../lib/locale'
 
 interface PantryViewProps {
+  locale: Locale
   items: PantryItem[]
   isLoading: boolean
   error: string
@@ -10,7 +12,8 @@ interface PantryViewProps {
   onDelete: (item: PantryItem) => Promise<void>
 }
 
-export function PantryView({ items, isLoading, error, onAdd, onDelete }: PantryViewProps) {
+export function PantryView({ locale, items, isLoading, error, onAdd, onDelete }: PantryViewProps) {
+  const t = (key: string) => translate(locale, key)
   const [name, setName] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [unit, setUnit] = useState('')
@@ -25,7 +28,7 @@ export function PantryView({ items, isLoading, error, onAdd, onDelete }: PantryV
     setFormError('')
     const quantityValue = Number(quantity)
     if (!name.trim() || !Number.isFinite(quantityValue) || quantityValue < 0) {
-      setFormError('Enter an ingredient name and a quantity of zero or more.')
+      setFormError(t('pantryValidation'))
       return
     }
 
@@ -46,7 +49,7 @@ export function PantryView({ items, isLoading, error, onAdd, onDelete }: PantryV
         setNotes('')
       }
     } catch {
-      setFormError('The ingredient could not be saved. Check your connection and try again.')
+      setFormError(t('pantrySaveError'))
     } finally {
       setSaving(false)
     }
@@ -62,41 +65,41 @@ export function PantryView({ items, isLoading, error, onAdd, onDelete }: PantryV
     <section className="collection-section pantry-section">
       <div className="collection-heading">
         <div>
-          <p className="eyebrow">INGREDIENTS ON HAND</p>
-          <h2>Pantry</h2>
+          <p className="eyebrow">{t('pantryHeading')}</p>
+          <h2>{t('pantry')}</h2>
         </div>
-        <span className="pantry-count">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
+        <span className="pantry-count">{items.length} {items.length === 1 ? t('item') : t('items')}</span>
       </div>
 
       <form className="pantry-form" onSubmit={(event) => void submit(event)}>
         <label className="form-field pantry-name">
-          <span>Ingredient</span>
-          <input required value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Brown rice" />
+          <span>{t('ingredientName')}</span>
+          <input required value={name} onChange={(event) => setName(event.target.value)} placeholder={t('pantryExample')} />
         </label>
         <label className="form-field pantry-quantity">
-          <span>Quantity</span>
+          <span>{t('pantryQuantity')}</span>
           <input type="number" min="0" step="any" required value={quantity} onChange={(event) => setQuantity(event.target.value)} />
         </label>
         <label className="form-field pantry-unit">
-          <span>Unit</span>
-          <input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="bags, cups..." />
+          <span>{t('pantryUnit')}</span>
+          <input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder={t('pantryUnitsExample')} />
         </label>
         <label className="form-field pantry-expiry">
-          <span>Best before <small>optional</small></span>
+          <span>{t('bestBefore')} <small>{t('optional')}</small></span>
           <input type="date" value={expirationDate} onChange={(event) => setExpirationDate(event.target.value)} />
         </label>
         <label className="form-field pantry-notes">
-          <span>Notes <small>optional</small></span>
-          <input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Where it is stored..." />
+          <span>{t('notes')} <small>{t('optional')}</small></span>
+          <input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder={t('whereStored')} />
         </label>
         <button className="primary-button pantry-submit" type="submit" disabled={saving || isLoading}>
-          <Plus aria-hidden="true" /> {saving ? 'Saving…' : 'Add ingredient'}
+          <Plus aria-hidden="true" /> {saving ? t('savingIngredient') : t('addIngredientAction')}
         </button>
       </form>
-      {(formError || error) && <p className="form-error pantry-error" role="alert">{formError || error}</p>}
+      {(formError || error) && <p className="form-error pantry-error" role="alert">{formError || translateError(locale, error)}</p>}
 
       {isLoading ? (
-        <div className="loading-state" role="status">Loading your pantry…</div>
+        <div className="loading-state" role="status">{t('pantryLoading')}</div>
       ) : sortedItems.length > 0 ? (
         <ul className="pantry-list">
           {sortedItems.map((item) => (
@@ -108,9 +111,9 @@ export function PantryView({ items, isLoading, error, onAdd, onDelete }: PantryV
               </div>
               <span className="pantry-item-quantity">{item.quantity} {item.unit}</span>
               <span className={`pantry-item-expiry ${item.expirationDate && item.expirationDate < today ? 'expired' : ''}`}>
-                {item.expirationDate ? `Best before ${item.expirationDate}` : 'No expiry date'}
+                {item.expirationDate ? `${t('bestBefore')} ${item.expirationDate}` : t('noExpiry')}
               </span>
-              <button className="icon-button danger-icon" type="button" aria-label={`Remove ${item.name} from pantry`} onClick={() => void onDelete(item)}>
+              <button className="icon-button danger-icon" type="button" aria-label={t('removeFromPantry').replace('{name}', item.name)} onClick={() => void onDelete(item)}>
                 <Trash2 aria-hidden="true" />
               </button>
             </li>
@@ -119,8 +122,8 @@ export function PantryView({ items, isLoading, error, onAdd, onDelete }: PantryV
       ) : (
         <div className="empty-state compact-empty pantry-empty">
           <span className="empty-illustration"><Package aria-hidden="true" /></span>
-          <h3>Your pantry list is empty.</h3>
-          <p>Add ingredients you already have. This list follows your account across your devices.</p>
+          <h3>{t('pantryEmptyTitle')}</h3>
+          <p>{t('pantryEmptyCopy')}</p>
         </div>
       )}
     </section>

@@ -1,5 +1,6 @@
 import { ArrowUpRight, ChefHat, Search } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react'
+import { translate, translateError, type Locale } from '../lib/locale'
 import type { MealCard, MealDetails } from '../types/food'
 
 const MealDetailsView = lazy(async () => {
@@ -34,9 +35,11 @@ function isMealDetails(value: unknown): value is MealDetails {
 
 interface RecommendedRecipesProps {
   favoriteRecipes: string[]
+  locale: Locale
 }
 
-export function RecommendedRecipes({ favoriteRecipes }: RecommendedRecipesProps) {
+export function RecommendedRecipes({ favoriteRecipes, locale }: RecommendedRecipesProps) {
+  const t = (key: string) => translate(locale, key)
   const [ingredient, setIngredient] = useState('')
   const [recipes, setRecipes] = useState<MealCard[]>([])
   const [selectedMeal, setSelectedMeal] = useState<MealDetails | null>(null)
@@ -59,16 +62,16 @@ export function RecommendedRecipes({ favoriteRecipes }: RecommendedRecipesProps)
         throw new Error(
           result && typeof result === 'object' && 'error' in result && typeof result.error === 'string'
             ? result.error
-            : 'The recipe catalog is unavailable. Try again later.',
+            : t('discoveryCatalogError'),
         )
       }
       if (!result || typeof result !== 'object' || !('recipes' in result) || !Array.isArray(result.recipes)) {
-        throw new Error('The recipe catalog returned an invalid response.')
+        throw new Error(t('discoveryInvalidResponse'))
       }
-      if (!result.recipes.every(isMealCard)) throw new Error('The recipe catalog returned an invalid response.')
+      if (!result.recipes.every(isMealCard)) throw new Error(t('discoveryInvalidResponse'))
       setRecipes(result.recipes)
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'The recipe catalog is unavailable. Try again later.')
+      setError(reason instanceof Error ? translateError(locale, reason.message) : t('discoveryCatalogError'))
       setRecipes([])
     } finally {
       setIsLoading(false)
@@ -94,17 +97,17 @@ export function RecommendedRecipes({ favoriteRecipes }: RecommendedRecipesProps)
         throw new Error(
           result && typeof result === 'object' && 'error' in result && typeof result.error === 'string'
             ? result.error
-            : 'Recipe details are unavailable. Try again later.',
+            : t('discoveryDetailUnavailable'),
         )
       }
       if (!result || typeof result !== 'object' || !('meal' in result)) {
-        throw new Error('The recipe catalog returned an invalid response.')
+        throw new Error(t('discoveryInvalidResponse'))
       }
-      if (!isMealDetails(result.meal)) throw new Error('The recipe catalog returned invalid recipe details.')
+      if (!isMealDetails(result.meal)) throw new Error(t('discoveryInvalidDetails'))
       setSelectedMeal(result.meal)
     } catch (reason) {
       setSelectedMeal(null)
-      setError(reason instanceof Error ? reason.message : 'Recipe details are unavailable. Try again later.')
+      setError(reason instanceof Error ? translateError(locale, reason.message) : t('discoveryDetailUnavailable'))
     }
   }
 
@@ -124,60 +127,61 @@ export function RecommendedRecipes({ favoriteRecipes }: RecommendedRecipesProps)
 
   return (
     <section className="collection-section discovery-section">
+      <p className="locale-data-notice">{t('englishMealDb')}</p>
       <div className="collection-heading">
         <div>
-          <p className="eyebrow">THEMEALDB RECIPE CATALOG</p>
-          <h2>Recipes to explore</h2>
+          <p className="eyebrow">{t('mealCatalog')}</p>
+          <h2>{t('recipesExplore')}</h2>
         </div>
       </div>
       <p className="discovery-intro">
-        Browse community recipes by one pantry ingredient. These are ideas from TheMealDB, not recipes saved in your cookbook.
+        {t('discoveryIntro')}
       </p>
       {favoriteRecipes.length > 0 && (
         <div className="favorite-inspiration" aria-live="polite">
-          <strong>Inspired by your favorites</strong>
+          <strong>{t('inspiredFavorites')}</strong>
           <span>{favoriteRecipes.slice(0, 4).join(' · ')}</span>
-          <small>Search one of these ingredient ideas to discover related dishes. Catalog results are not inferred to be similar to your personal recipes.</small>
+          <small>{t('inspiredCopy')}</small>
         </div>
       )}
       <form className="collection-controls discovery-search" onSubmit={(event) => void searchMeals(event)}>
         <label className="search-control">
           <Search aria-hidden="true" />
-          <span className="sr-only">Search catalog by one ingredient</span>
+          <span className="sr-only">{t('catalogSearch')}</span>
           <input
             minLength={2}
             maxLength={60}
             required
             value={ingredient}
             onChange={(event) => setIngredient(event.target.value)}
-            placeholder="Try tomato, chicken, or lentils"
+            placeholder={t('tryIngredients')}
           />
         </label>
         <button className="primary-button" type="submit" disabled={isLoading}>
-          <Search aria-hidden="true" /> {isLoading ? 'Searching…' : 'Find recipes'}
+          <Search aria-hidden="true" /> {isLoading ? t('searching') : t('findRecipes')}
         </button>
       </form>
-      {isLoading && <p className="loading-state" role="status">Searching TheMealDB…</p>}
+      {isLoading && <p className="loading-state" role="status">{t('searchingMealDb')}</p>}
       {error && <p className="form-error discovery-error" role="alert">{error}</p>}
       {!isLoading && searched && !error && recommendations.length === 0 && (
         <div className="empty-state compact-empty">
           <span className="empty-illustration"><ChefHat aria-hidden="true" /></span>
-          <h3>No catalog recipes found for that ingredient.</h3>
-          <p>Try another ingredient or check the spelling.</p>
+          <h3>{t('noCatalogResults')}</h3>
+          <p>{t('tryAnotherIngredient')}</p>
         </div>
       )}
       {!isLoading && recommendations.length > 0 && (
         <div className="recipe-grid discovery-grid">
           {recommendations.map((recipe) => (
             <article className="recipe-card discovery-card" key={recipe.id}>
-              <button className="recipe-card-open" type="button" onClick={() => void openMeal(recipe)} aria-label={`View ${recipe.name}`}>
+              <button className="recipe-card-open" type="button" onClick={() => void openMeal(recipe)} aria-label={t('viewRecipe').replace('{name}', recipe.name)}>
                 <div className="recipe-card-image">
                   {recipe.imageUrl && <img src={recipe.imageUrl} alt="" loading="lazy" />}
                 </div>
                 <div className="recipe-card-content">
                   <div className="recipe-card-heading"><h3>{recipe.name}</h3></div>
-                  <p>Recipe from TheMealDB</p>
-                  <span className="catalog-open-link">See ingredients and method <ArrowUpRight aria-hidden="true" /></span>
+                  <p>{t('mealDbRecipe')}</p>
+                  <span className="catalog-open-link">{t('seeIngredientsMethod')} <ArrowUpRight aria-hidden="true" /></span>
                 </div>
               </button>
             </article>
@@ -185,12 +189,12 @@ export function RecommendedRecipes({ favoriteRecipes }: RecommendedRecipesProps)
         </div>
       )}
       <p className="data-attribution">
-        Recipe data and imagery: <a href="https://www.themealdb.com/" target="_blank" rel="noreferrer">TheMealDB</a>.
-        This public web deployment uses its development key; production and public-service use may require a paid key.
+        {t('mealDbAttribution')} <a href="https://www.themealdb.com/" target="_blank" rel="noreferrer">TheMealDB</a>.
+        {' '}{t('mealDbLicenseNotice')}
       </p>
       {selectedMeal && (
-        <Suspense fallback={<div className="dialog-backdrop"><p role="status">Loading recipe details…</p></div>}>
-          <MealDetailsView meal={selectedMeal} onClose={() => setSelectedMeal(null)} />
+        <Suspense fallback={<div className="dialog-backdrop"><p role="status">{t('loadingDetails')}</p></div>}>
+          <MealDetailsView meal={selectedMeal} locale={locale} onClose={() => setSelectedMeal(null)} />
         </Suspense>
       )}
     </section>

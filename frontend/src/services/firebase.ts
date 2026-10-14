@@ -10,6 +10,7 @@ import {
   type User,
 } from 'firebase/auth'
 import { initializeFirestore, memoryLocalCache } from 'firebase/firestore'
+import { translate, type Locale } from '../lib/locale'
 
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -68,16 +69,16 @@ export async function signOutGoogle(): Promise<void> {
   await signOut(firebaseAuth)
 }
 
-export function firebaseErrorMessage(error: unknown): string {
+export function firebaseErrorMessage(error: unknown, locale: Locale = 'en-US'): string {
   const code = typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : ''
   const messages: Record<string, string> = {
-    'auth/popup-closed-by-user': 'Login cancelled. Try again when you are ready.',
-    'auth/popup-blocked': 'Allow pop-ups for this site, then try again.',
-    'auth/unauthorized-domain': 'Add this site domain under Firebase Authentication → Settings → Authorized domains.',
-    'auth/operation-not-allowed': 'Enable Google under Firebase Authentication → Sign-in method.',
-    'auth/network-request-failed': 'Connect to the internet to sign in.',
-    'permission-denied': 'Cloud access denied. Verify the owner UID in Firestore Rules.',
-    unavailable: 'Firebase is temporarily unavailable. Check your connection and retry.',
+    'auth/popup-closed-by-user': 'signInCancelled',
+    'auth/popup-blocked': 'allowPopups',
+    'auth/unauthorized-domain': 'authorizeDomain',
+    'auth/operation-not-allowed': 'enableGoogle',
+    'auth/network-request-failed': 'authNetwork',
+    'permission-denied': 'cloudDenied',
+    unavailable: 'firebaseUnavailable',
   }
-  return messages[code] ?? 'Unable to connect to your account. Check Firebase setup and try again.'
+  return translate(locale, messages[code] ?? 'authConnectionError')
 }

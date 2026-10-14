@@ -2,6 +2,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createRecipeBackup, saveRecipes } from './services/recipeStorage'
+import { firebaseErrorMessage } from './services/firebase'
+import { translateError } from './lib/locale'
 import type { VaultSnapshot } from './services/firestoreVault'
 import type { PantryItem } from './types/pantry'
 import type { Recipe, RecipeDraft } from './types/recipe'
@@ -36,6 +38,7 @@ afterEach(() => {
   cleanup()
   window.localStorage.clear()
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
   testVault.snapshot = { recipes: [], pantry: [] }
   testVault.subscribers = []
 })
@@ -79,12 +82,136 @@ describe('recipe collection', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Add to favorites' }))
     fireEvent.click(screen.getByRole('button', { name: 'Close recipe details' }))
-    fireEvent.click(screen.getAllByRole('button', { name: /Favorites/ })[0])
+    fireEvent.click(screen.getByLabelText(/Favorites only/))
     expect(screen.getByRole('button', { name: 'View Oat pancakes' })).toBeTruthy()
 
     fireEvent.change(screen.getByPlaceholderText('Search recipes or ingredients...'), { target: { value: 'oat flour' } })
     expect(screen.getByRole('button', { name: 'View Oat pancakes' })).toBeTruthy()
     await waitFor(() => expect(testVault.snapshot.recipes[0].isFavorite).toBe(true))
+  })
+
+  describe('collection navigation and locale', () => {
+    it('localizes authentication and application error messages', () => {
+      expect(firebaseErrorMessage({ code: 'auth/network-request-failed' }, 'pt-BR')).toBe('Conecte-se à internet para entrar.')
+      expect(translateError('pt-BR', 'This file is not valid JSON. Your saved recipes were not changed.')).toBe(
+        'Este arquivo não é um JSON válido. Suas receitas salvas não foram alteradas.',
+      )
+    })
+
+    it('uses one recipe collection with an in-place favorites filter', async () => {
+      testVault.snapshot.recipes = [
+        { ...backupRecipe, id: 'favorite', title: 'Favorite soup', isFavorite: true },
+        { ...backupRecipe, id: 'other', title: 'Everyday salad', isFavorite: false },
+      ]
+      render(<App />)
+      await screen.findByRole('button', { name: 'View Favorite soup' })
+
+      expect(screen.getByRole('button', { name: 'View Everyday salad' })).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'Overview' })).toBeNull()
+      expect(screen.queryByRole('button', { name: /^Favorites$/ })).toBeNull()
+
+      fireEvent.click(screen.getByLabelText(/Favorites only/))
+
+      expect(screen.getByRole('button', { name: 'View Favorite soup' })).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'View Everyday salad' })).toBeNull()
+    })
+
+    it('switches app language and persists the selected locale', async () => {
+      testVault.snapshot.recipes = [{ ...backupRecipe, id: 'sample', title: 'Favorite soup', isFavorite: true }]
+      render(<App />)
+      await screen.findByRole('heading', { name: 'Your recipes, all in one place.' })
+      fireEvent.change(screen.getByLabelText('Language'), { target: { value: 'pt-BR' } })
+
+      expect(screen.getByRole('heading', { name: 'Suas receitas em um só lugar.' })).toBeTruthy()
+      expect(screen.getAllByRole('button', { name: 'Minhas receitas' })).toHaveLength(2)
+      expect(window.localStorage.getItem('recipes-vault-locale')).toBe('pt-BR')
+      expect(document.documentElement.lang).toBe('pt-BR')
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Ver Favorite soup' }))
+      expect(screen.getByRole('heading', { name: 'Ingredientes' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Editar' })).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: 'Editar' }))
+      expect(screen.getByLabelText('Nome da receita')).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Adicionar ingrediente' })).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: 'Fechar formulário da receita' }))
+
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      const restoreFile = new File(['backup'], 'recipes.json', { type: 'application/json' })
+      Object.defineProperty(restoreFile, 'text', { value: async () => JSON.stringify(createRecipeBackup([backupRecipe])) })
+      fireEvent.change(screen.getByLabelText('Restaurar backup de receitas'), { target: { files: [restoreFile] } })
+      expect(await screen.findByText('Restauradas 1 receita.')).toBeTruthy()
+      expect(window.confirm).toHaveBeenCalledWith('Substituir sua coleção na nuvem por 1 receita deste backup?')
+
+      const UrlMock = class extends URL {}
+      Object.assign(UrlMock, { createObjectURL: vi.fn(() => 'blob:recipes'), revokeObjectURL: vi.fn() })
+      vi.stubGlobal('URL', UrlMock)
+      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+      fireEvent.click(screen.getByRole('button', { name: 'Exportar backup' }))
+      expect(await screen.findByText('Exportadas 1 receita.')).toBeTruthy()
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'Despensa' })[0])
+      expect(await screen.findByText('Sua despensa está vazia.')).toBeTruthy()
+      expect(screen.getByLabelText('Ingrediente')).toBeTruthy()
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'Descobrir' })[0])
+      expect(await screen.findByText(/O conteúdo de receitas do TheMealDB/)).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Buscar receitas' })).toBeTruthy()
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          found: true,
+          product: {
+            barcode: '4006381333931',
+            name: 'Source language product',
+            brand: 'Source brand',
+            quantity: '',
+            imageUrl: '',
+            productUrl: 'https://world.openfoodfacts.org/product/4006381333931',
+            nutriScore: null,
+            novaGroup: null,
+            ingredients: 'Original contributor ingredient text',
+            additives: [],
+            productType: 'food',
+            nutritionBasis: '100g',
+            nutrients: {
+              energyKcal: 150,
+              proteinG: 5,
+              fiberG: 3,
+              fatG: 4,
+              saturatedFatG: 1,
+              sugarsG: 2,
+              sodiumMg: 120,
+              saltG: null,
+            },
+          },
+        }),
+      }))
+      fireEvent.click(screen.getAllByRole('button', { name: 'Escanear alimento' })[0])
+      expect(await screen.findByText(/Os campos de produtos do Open Food Facts/)).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Consultar produto' })).toBeTruthy()
+      fireEvent.change(screen.getByLabelText('Código de barras do produto'), { target: { value: '123' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Consultar produto' }))
+      expect(screen.getByRole('alert').textContent).toContain('Informe um código EAN/UPC válido')
+      fireEvent.change(screen.getByLabelText('Código de barras do produto'), { target: { value: '4006381333931' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Consultar produto' }))
+      expect(await screen.findByRole('heading', { name: 'Semáforo nutricional' })).toBeTruthy()
+      expect(screen.getAllByRole('heading', { name: 'Source language product' })).toHaveLength(2)
+      expect(screen.getByRole('heading', { name: 'Ingredientes e aditivos' })).toBeTruthy()
+    })
+
+    it('opens and closes the mobile account and tools drawer', async () => {
+      render(<App />)
+      await screen.findByRole('button', { name: 'Add recipe' })
+      fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
+
+      expect(screen.getByText('owner@example.com')).toBeTruthy()
+      expect(screen.getByLabelText('Language')).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Export backup' })).toBeTruthy()
+      const sidebar = screen.getByLabelText('Your kitchen')
+      expect(sidebar.classList.contains('mobile-open')).toBe(true)
+      fireEvent.click(screen.getAllByRole('button', { name: 'Close menu' })[1])
+      expect(sidebar.classList.contains('mobile-open')).toBe(false)
+    })
   })
 
   it('imports through the server, reviews the draft, and saves only after confirmation', async () => {

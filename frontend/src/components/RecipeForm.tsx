@@ -1,6 +1,7 @@
 import { Plus, Trash2, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { parseIngredientQuantity } from '../lib/recipes'
+import { translate, translateError, type Locale } from '../lib/locale'
 import type { Recipe, RecipeDifficulty, RecipeDraft } from '../types/recipe'
 
 interface IngredientFields {
@@ -11,6 +12,7 @@ interface IngredientFields {
 }
 
 interface RecipeFormProps {
+  locale: Locale
   recipe: Recipe | null
   initialDraft: RecipeDraft | null
   saveError: string
@@ -25,7 +27,8 @@ const blankIngredient = (): IngredientFields => ({
   optional: false,
 })
 
-export function RecipeForm({ recipe, initialDraft, saveError, onClose, onSave }: RecipeFormProps) {
+export function RecipeForm({ locale, recipe, initialDraft, saveError, onClose, onSave }: RecipeFormProps) {
+  const t = (key: string) => translate(locale, key)
   const values = recipe ?? initialDraft
   const [title, setTitle] = useState(values?.title ?? '')
   const [description, setDescription] = useState(values?.description ?? '')
@@ -80,22 +83,22 @@ export function RecipeForm({ recipe, initialDraft, saveError, onClose, onSave }:
     }
 
     if (!title.trim() || !category.trim()) {
-      setError('Add a recipe name and category.')
+      setError(t('validationNameCategory'))
       return
     }
     if (!Number.isInteger(servingsValue) || servingsValue < 1) {
-      setError('Servings must be a whole number greater than zero.')
+      setError(t('validationServings'))
       return
     }
     if (
       !Number.isInteger(prepValue) || prepValue < 0 ||
       !Number.isInteger(cookValue) || cookValue < 0
     ) {
-      setError('Cooking times must be whole numbers, zero or greater.')
+      setError(t('validationTimes'))
       return
     }
     if (!validUrl(imageUrl.trim()) || !validUrl(sourceUrl.trim())) {
-      setError('Image and source links must be valid HTTP or HTTPS URLs.')
+      setError(t('validationUrls'))
       return
     }
 
@@ -114,7 +117,7 @@ export function RecipeForm({ recipe, initialDraft, saveError, onClose, onSave }:
       .map((text) => ({ id: crypto.randomUUID(), text: text.trim() }))
 
     if (!savedIngredients.length || !savedInstructions.length) {
-      setError('Add at least one ingredient and one cooking step.')
+      setError(t('validationIngredients'))
       return
     }
 
@@ -145,119 +148,119 @@ export function RecipeForm({ recipe, initialDraft, saveError, onClose, onSave }:
       <section className="recipe-form-dialog" role="dialog" aria-modal="true" aria-labelledby="recipe-form-title">
         <div className="dialog-heading">
           <div>
-            <p className="eyebrow">{recipe ? 'Make it yours' : initialDraft ? 'Review before saving' : 'Add to your collection'}</p>
-            <h2 id="recipe-form-title">{recipe ? 'Edit recipe' : initialDraft ? 'Review imported recipe' : 'New recipe'}</h2>
+            <p className="eyebrow">{t(recipe ? 'editMakeYours' : initialDraft ? 'reviewSaving' : 'addCollection')}</p>
+            <h2 id="recipe-form-title">{t(recipe ? 'editRecipe' : initialDraft ? 'reviewImported' : 'newRecipe')}</h2>
           </div>
-          <button className="icon-button" type="button" aria-label="Close recipe form" onClick={onClose}>
+          <button className="icon-button" type="button" aria-label={t('closeForm')} onClick={onClose}>
             <X aria-hidden="true" />
           </button>
         </div>
         <form className="recipe-form" onSubmit={(event) => void submit(event)}>
           <div className="form-grid">
             <label className="form-field form-field-wide">
-              <span>Recipe name</span>
-              <input autoFocus required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Sunday tomato pasta" />
+              <span>{t('recipeName')}</span>
+              <input autoFocus required value={title} onChange={(event) => setTitle(event.target.value)} placeholder={t('recipeExample')} />
             </label>
             <label className="form-field form-field-wide">
-              <span>Short description</span>
-              <textarea rows={2} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What makes this one special?" />
+              <span>{t('shortDescription')}</span>
+              <textarea rows={2} value={description} onChange={(event) => setDescription(event.target.value)} placeholder={t('descriptionPrompt')} />
             </label>
             <label className="form-field">
-              <span>Category</span>
-              <input required value={category} onChange={(event) => setCategory(event.target.value)} placeholder="Dinner" />
+              <span>{t('category')}</span>
+              <input required value={category} onChange={(event) => setCategory(event.target.value)} placeholder={t('categoryExample')} />
             </label>
             <label className="form-field">
-              <span>Tags <small>Separate with commas</small></span>
-              <input value={tags} onChange={(event) => setTags(event.target.value)} placeholder="quick, vegetarian" />
+              <span>{t('tags')} <small>{t('separateCommas')}</small></span>
+              <input value={tags} onChange={(event) => setTags(event.target.value)} placeholder={t('tagsExample')} />
             </label>
             <label className="form-field">
-              <span>Servings</span>
+              <span>{t('servings')}</span>
               <input type="number" min="1" step="1" required value={servings} onChange={(event) => setServings(event.target.value)} />
             </label>
             <label className="form-field">
-              <span>Prep time <small>minutes</small></span>
+              <span>{t('prepTime')} <small>{t('minutes')}</small></span>
               <input type="number" min="0" step="1" value={prepTimeMinutes} onChange={(event) => setPrepTimeMinutes(event.target.value)} />
             </label>
             <label className="form-field">
-              <span>Cook time <small>minutes</small></span>
+              <span>{t('cookTime')} <small>{t('minutes')}</small></span>
               <input type="number" min="0" step="1" value={cookTimeMinutes} onChange={(event) => setCookTimeMinutes(event.target.value)} />
             </label>
             <label className="form-field">
-              <span>Difficulty</span>
+              <span>{t('difficulty')}</span>
               <select value={difficulty} onChange={(event) => setDifficulty(event.target.value as RecipeDifficulty)}>
-                <option>Easy</option>
-                <option>Medium</option>
-                <option>Hard</option>
+                <option value="Easy">{t('easy')}</option>
+                <option value="Medium">{t('medium')}</option>
+                <option value="Hard">{t('hard')}</option>
               </select>
             </label>
             <label className="form-field form-field-wide">
-              <span>Image URL <small>optional</small></span>
+              <span>{t('imageUrl')} <small>{t('optional')}</small></span>
               <input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://" />
             </label>
             <label className="form-field form-field-wide">
-              <span>Original recipe URL <small>optional</small></span>
+              <span>{t('sourceRecipeUrl')} <small>{t('optional')}</small></span>
               <input type="url" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} placeholder="https://" />
             </label>
           </div>
 
           <fieldset className="editor-section">
-            <legend>Ingredients</legend>
-            <p className="section-hint">Keep quantities as written; amounts that cannot be scaled stay as text.</p>
+            <legend>{t('ingredientsTitle')}</legend>
+            <p className="section-hint">{t('editorIngredientsHint')}</p>
             <div className="ingredient-editor-list">
               {ingredients.map((ingredient, index) => (
                 <div className="ingredient-editor-row" key={index}>
                   <label>
-                    <span className="sr-only">Quantity for ingredient {index + 1}</span>
-                    <input value={ingredient.quantityText} onChange={(event) => updateIngredient(index, { quantityText: event.target.value })} placeholder="1 1/2" />
+                    <span className="sr-only">{t('ingredientQuantity').replace('{n}', String(index + 1))}</span>
+                    <input value={ingredient.quantityText} onChange={(event) => updateIngredient(index, { quantityText: event.target.value })} placeholder={t('quantityExample')} />
                   </label>
                   <label>
-                    <span className="sr-only">Unit for ingredient {index + 1}</span>
-                    <input value={ingredient.unit} onChange={(event) => updateIngredient(index, { unit: event.target.value })} placeholder="cups" />
+                    <span className="sr-only">{t('ingredientUnit').replace('{n}', String(index + 1))}</span>
+                    <input value={ingredient.unit} onChange={(event) => updateIngredient(index, { unit: event.target.value })} placeholder={t('unitExample')} />
                   </label>
                   <label className="ingredient-name-field">
-                    <span className="sr-only">Ingredient {index + 1}</span>
-                    <input value={ingredient.name} onChange={(event) => updateIngredient(index, { name: event.target.value })} placeholder="Flour" />
+                    <span className="sr-only">{t('ingredient')} {index + 1}</span>
+                    <input value={ingredient.name} onChange={(event) => updateIngredient(index, { name: event.target.value })} placeholder={t('ingredientExample')} />
                   </label>
                   <label className="optional-control">
                     <input type="checkbox" checked={ingredient.optional} onChange={(event) => updateIngredient(index, { optional: event.target.checked })} />
-                    <span>Optional</span>
+                    <span>{t('optional')}</span>
                   </label>
-                  <button className="icon-button danger-icon" type="button" aria-label={`Remove ingredient ${index + 1}`} disabled={ingredients.length === 1} onClick={() => setIngredients((current) => current.filter((_, currentIndex) => currentIndex !== index))}>
+                  <button className="icon-button danger-icon" type="button" aria-label={t('removeIngredient').replace('{n}', String(index + 1))} disabled={ingredients.length === 1} onClick={() => setIngredients((current) => current.filter((_, currentIndex) => currentIndex !== index))}>
                     <Trash2 aria-hidden="true" />
                   </button>
                 </div>
               ))}
             </div>
             <button className="text-button" type="button" onClick={() => setIngredients((current) => [...current, blankIngredient()])}>
-              <Plus aria-hidden="true" /> Add ingredient
+              <Plus aria-hidden="true" /> {t('addIngredient')}
             </button>
           </fieldset>
 
           <fieldset className="editor-section">
-            <legend>Method</legend>
+            <legend>{t('method')}</legend>
             <div className="instruction-editor-list">
               {instructions.map((step, index) => (
                 <div className="instruction-editor-row" key={index}>
                   <span className="instruction-number">{index + 1}</span>
                   <label>
-                    <span className="sr-only">Cooking step {index + 1}</span>
-                    <textarea rows={2} value={step} onChange={(event) => updateInstruction(index, event.target.value)} placeholder="Describe this step..." />
+                    <span className="sr-only">{t('cookingStep').replace('{n}', String(index + 1))}</span>
+                    <textarea rows={2} value={step} onChange={(event) => updateInstruction(index, event.target.value)} placeholder={t('describeStep')} />
                   </label>
-                  <button className="icon-button danger-icon" type="button" aria-label={`Remove step ${index + 1}`} disabled={instructions.length === 1} onClick={() => setInstructions((current) => current.filter((_, currentIndex) => currentIndex !== index))}>
+                  <button className="icon-button danger-icon" type="button" aria-label={t('removeStep').replace('{n}', String(index + 1))} disabled={instructions.length === 1} onClick={() => setInstructions((current) => current.filter((_, currentIndex) => currentIndex !== index))}>
                     <Trash2 aria-hidden="true" />
                   </button>
                 </div>
               ))}
             </div>
             <button className="text-button" type="button" onClick={() => setInstructions((current) => [...current, ''])}>
-              <Plus aria-hidden="true" /> Add step
+              <Plus aria-hidden="true" /> {t('addStep')}
             </button>
           </fieldset>
 
-          {(error || saveError) && <p className="form-error" role="alert">{error || saveError}</p>}
+          {(error || saveError) && <p className="form-error" role="alert">{error || translateError(locale, saveError)}</p>}
           <div className="form-actions">
-            <button className="secondary-button" type="button" onClick={onClose}>Cancel</button>
-            <button className="primary-button" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : recipe ? 'Save changes' : 'Save recipe'}</button>
+            <button className="secondary-button" type="button" onClick={onClose}>{t('cancel')}</button>
+            <button className="primary-button" type="submit" disabled={isSaving}>{isSaving ? t('saving') : recipe ? t('saveChanges') : t('saveRecipe')}</button>
           </div>
         </form>
       </section>

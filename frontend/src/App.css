@@ -17,8 +17,99 @@
   width: 250px;
   height: 100vh;
   padding: 31px 18px 22px;
+  overflow-y: auto;
   border-right: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.96);
+}
+
+.sidebar .brand {
+  margin-bottom: 24px;
+}
+
+.sidebar-close {
+  display: none;
+}
+
+.sidebar-tools-label {
+  margin-top: 27px;
+}
+
+.sidebar-tools {
+  display: grid;
+  gap: 5px;
+}
+
+.restore-sidebar {
+  position: relative;
+  cursor: pointer;
+}
+
+.restore-sidebar input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.restore-sidebar:focus-within {
+  outline: 2px solid var(--amber-bright);
+  outline-offset: 2px;
+}
+
+.sidebar-feedback {
+  margin: 8px 4px 0;
+  color: var(--amber-bright);
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.sidebar-feedback-error {
+  color: var(--danger);
+}
+
+.sidebar-account {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.sidebar-account .nav-label {
+  margin: 0;
+}
+
+.sidebar-account .account-email {
+  display: block;
+  max-width: 100%;
+  font-size: 11px;
+}
+
+.language-control {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.language-control select {
+  width: 100%;
+  min-height: 35px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 11px;
+}
+
+.sidebar-account .sign-out-button {
+  justify-content: flex-start;
+}
+
+.sidebar-backdrop {
+  display: none;
 }
 
 .brand {
@@ -252,6 +343,28 @@
   gap: 10px;
 }
 
+.topbar-leading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.mobile-menu-button {
+  display: none;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+}
+
+.mobile-menu-button svg {
+  width: 18px;
+  height: 18px;
+}
+
 .account-email {
   max-width: 230px;
   overflow: hidden;
@@ -384,14 +497,14 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 31px;
+  margin-bottom: 30px;
 }
 
 .eyebrow {
   display: flex;
   align-items: center;
-  gap: 7px;
-  margin-bottom: 11px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .eyebrow svg {
@@ -435,8 +548,8 @@
 .stats-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 13px;
-  margin-bottom: 48px;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .stat-card {
@@ -580,6 +693,17 @@
   align-items: center;
   gap: 9px;
   margin-bottom: 20px;
+}
+
+.locale-data-notice {
+  margin: 0 0 16px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .search-control,
@@ -881,9 +1005,9 @@
   justify-items: center;
   min-height: 320px;
   align-content: center;
-  padding: 28px;
+  padding: 10px;
   border: 1px dashed var(--line-strong);
-  border-radius: 14px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.65);
   text-align: center;
 }
@@ -906,7 +1030,7 @@
 }
 
 .empty-state .eyebrow {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .empty-state h3 {
@@ -1928,7 +2052,48 @@
 
 @media (max-width: 760px) {
   .sidebar {
-    display: none;
+    z-index: 12;
+    display: flex;
+    width: min(320px, 88vw);
+    height: 100dvh;
+    padding: 20px 16px;
+    box-shadow: 12px 0 40px rgba(23, 43, 29, 0.12);
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition: transform 180ms ease, visibility 0s linear 180ms;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 180ms ease, visibility 0s;
+  }
+
+  .sidebar-close {
+    position: absolute;
+    top: 20px;
+    right: 16px;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--surface);
+  }
+
+  .sidebar-close svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    z-index: 11;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: rgba(23, 43, 29, 0.35);
   }
 
   .main-column {
@@ -1937,8 +2102,14 @@
 
   .topbar {
     position: sticky;
-    min-height: 63px;
-    padding: 0 19px;
+    z-index: 2;
+    min-height: 60px;
+    padding: 5px 10px;
+  }
+
+  .mobile-menu-button {
+    display: inline-flex;
+    flex: 0 0 auto;
   }
 
   .mobile-brand {
@@ -1962,16 +2133,6 @@
     gap: 6px;
   }
 
-  .account-email {
-    display: none;
-  }
-
-  .sign-out-button {
-    min-height: 34px;
-    padding: 0 8px;
-    font-size: 9px;
-  }
-
   .topbar-add {
     min-height: 35px;
     padding: 0 11px;
@@ -1983,11 +2144,11 @@
   }
 
   .main-content {
-    padding: 33px 19px 102px;
+    padding: 10px 10px 100px;
   }
 
   .welcome-row {
-    margin-bottom: 22px;
+    margin-bottom: 10px;
   }
 
   .welcome-row h1 {
@@ -2009,8 +2170,8 @@
   }
 
   .stats-row {
-    gap: 8px;
-    margin-bottom: 35px;
+    gap: 10px;
+    margin-bottom: 10px;
   }
 
   .stat-card {
@@ -2066,7 +2227,6 @@
 
   .food-lookup-actions {
     align-items: stretch;
-    flex-direction: column;
   }
 
   .food-search-form {
@@ -2239,7 +2399,7 @@
     bottom: 0;
     left: 0;
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     padding: 7px 9px calc(env(safe-area-inset-bottom, 0px) + 7px);
     border-top: 1px solid var(--line);
     background: rgba(255, 255, 255, 0.96);

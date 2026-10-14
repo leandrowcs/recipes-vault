@@ -1,14 +1,17 @@
 import { Clock3, Heart, Users } from 'lucide-react'
 import { useState } from 'react'
+import { translate, type Locale } from '../lib/locale'
 import type { Recipe } from '../types/recipe'
 
 interface RecipeCardProps {
+  locale: Locale
   recipe: Recipe
   onOpen: (recipe: Recipe) => void
   onToggleFavorite: (recipe: Recipe) => void
 }
 
-export function RecipeCard({ recipe, onOpen, onToggleFavorite }: RecipeCardProps) {
+export function RecipeCard({ locale, recipe, onOpen, onToggleFavorite }: RecipeCardProps) {
+  const t = (key: string) => translate(locale, key)
   const [imageFailed, setImageFailed] = useState(false)
   const totalTime = recipe.prepTimeMinutes + recipe.cookTimeMinutes
 
@@ -18,7 +21,7 @@ export function RecipeCard({ recipe, onOpen, onToggleFavorite }: RecipeCardProps
         className="recipe-card-open"
         type="button"
         onClick={() => onOpen(recipe)}
-        aria-label={`View ${recipe.title}`}
+        aria-label={t('viewRecipe').replace('{name}', recipe.title)}
       >
         <div className="recipe-card-image">
           {recipe.imageUrl && !imageFailed ? (
@@ -38,19 +41,19 @@ export function RecipeCard({ recipe, onOpen, onToggleFavorite }: RecipeCardProps
         <div className="recipe-card-content">
           <div className="recipe-card-heading">
             <h3>{recipe.title}</h3>
-            <span className="difficulty-label">{recipe.difficulty}</span>
+            <span className="difficulty-label">{t(recipe.difficulty.toLowerCase())}</span>
           </div>
-          <p>{recipe.description || 'A new favorite for your table.'}</p>
+          <p>{recipe.description || t('favoriteForTable')}</p>
           <div className="recipe-meta">
-            <span><Clock3 aria-hidden="true" /> {totalTime} min</span>
-            <span><Users aria-hidden="true" /> {recipe.servings} servings</span>
+            <span><Clock3 aria-hidden="true" /> {totalTime} {t('minutesShort')}</span>
+            <span><Users aria-hidden="true" /> {recipe.servings} {t('servingsShort')}</span>
           </div>
         </div>
       </button>
       <button
         className={`favorite-button ${recipe.isFavorite ? 'is-favorite' : ''}`}
         type="button"
-        aria-label={recipe.isFavorite ? `Remove ${recipe.title} from favorites` : `Add ${recipe.title} to favorites`}
+        aria-label={(recipe.isFavorite ? t('unfavoriteRecipe') : t('favoriteRecipe')).replace('{title}', recipe.title)}
         aria-pressed={recipe.isFavorite}
         onClick={() => onToggleFavorite(recipe)}
       >

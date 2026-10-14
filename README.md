@@ -86,15 +86,19 @@ Vercel runs `npm --prefix frontend ci --include=dev` and `npm --prefix frontend 
 
 ## Recipe discovery and barcode lookup
 
+## App language and catalog data
+
+Choose English (US) or Português (Brasil) in the sidebar. The selection changes app interface labels only; it does not translate saved recipe content or external catalog data. TheMealDB source recipe content is English only. Open Food Facts product fields remain in the language entered by contributors and can vary by product.
+
 ### TheMealDB
 
-The app's local development server may use the public development key `1`. Do not use that key on Vercel: TheMealDB's API page limits it to development/education and requires a supporter key for public app-store release; its official [AGENTS.md](https://www.themealdb.com/AGENTS.md) recommends production/Premium access for public production services. The exact applicability to a public personal website is not explicit in the [terms](https://www.themealdb.com/terms_of_use.php), so confirm with TheMealDB before enabling production requests.
+The app uses TheMealDB's ingredient-filter (`filter.php`) and recipe-lookup (`lookup.php`) endpoints. The current Vercel app configuration requires the server-only `MEALDB_API_KEY` environment variable to be set; when running locally outside Vercel, it falls back to the public development key `1`. This is an application configuration requirement, not a claim that these endpoints require a paid or newly generated key.
 
-When licensed for public production, add the production key as the server-only `MEALDB_API_KEY` variable in Vercel (Production and Preview), then redeploy. It is read by `/api/mealdb` and is never exposed in the frontend. Production requests are disabled when this variable is missing. The Discover page searches the catalog using one ingredient, opens ingredients and method, and credits TheMealDB and the original recipe source. It does not claim to infer a match to a user's personal recipes.
+Set `MEALDB_API_KEY` in Vercel (Production and Preview) and redeploy; `/api/mealdb` reads it server-side and never exposes it in the frontend. The app disables catalog requests on Vercel when it is missing. Confirm TheMealDB's current terms and licensing for your production use before deployment. The Discover page searches the catalog using one ingredient, opens ingredients and method, and credits TheMealDB and the original recipe source. It does not claim to infer a match to a user's personal recipes.
 
 ### Open Food Facts
 
-The Scan food page supports camera scanning over HTTPS and manual entry of EAN/UPC. Product lookup is proxied through `/api/open-food-facts`, sends a Recipes Vault `User-Agent`, validates the barcode check digit, and limits the upstream response to requested fields. No API key is required. An unknown barcode, unavailable catalog, rate limit, missing nutrition fields, or camera error is shown explicitly.
+The Scan food page supports camera scanning over HTTPS and manual entry of EAN/UPC. Product lookup is proxied through `/api/open-food-facts`, sends a Recipes Vault `User-Agent`, validates the barcode check digit, and limits the upstream response to requested fields. Open Food Facts reads require no API key. An unknown barcode, unavailable catalog, rate limit, missing nutrition fields, or camera error is shown explicitly.
 
 Product details link to their Open Food Facts source and identify the database/content licenses. The displayed per-100g or per-100ml low/medium/high indicators follow the UK 2016 front-of-pack guidance for packaged foods; energy is shown as a value without a traffic-light rating. Protein/fiber "source/high" labels follow the applicable EU nutrition-claim criteria and require adequate energy/nutrient data. These indicators are not an overall health score. Additives are shown as data only and do not imply harm. Nutrient and ingredient data are community-contributed, may be incomplete/inaccurate, and are not for medical use. Verify the physical package and seek qualified advice for health decisions.
 
@@ -116,7 +120,7 @@ Never commit `frontend/.env.local`. The committed `frontend/.env.example` contai
 
 ## Recipe backups
 
-Use **Export backup** regularly to download a JSON copy of your recipes. **Restore backup** validates the file and asks for confirmation before replacing the cloud recipe collection; pantry items are not changed. Keep backups in a secure location.
+Use **Export backup** regularly from the sidebar to download a JSON copy of your recipes. **Restore backup** in the sidebar validates the file and asks for confirmation before replacing the cloud recipe collection; pantry items are not changed. Keep backups in a secure location.
 
 If the app finds recipes from the earlier device-only version in this browser, it offers an explicit import into the cloud collection after sign-in. Existing cloud recipes are never overwritten by that migration prompt.
 

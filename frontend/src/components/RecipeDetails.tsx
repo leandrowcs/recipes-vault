@@ -1,9 +1,11 @@
 import { Clock3, ExternalLink, Heart, Pencil, Users, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { formatScaledQuantity } from '../lib/recipes'
+import { translate, translateError, type Locale } from '../lib/locale'
 import type { Recipe } from '../types/recipe'
 
 interface RecipeDetailsProps {
+  locale: Locale
   recipe: Recipe
   errorMessage: string
   onClose: () => void
@@ -12,7 +14,8 @@ interface RecipeDetailsProps {
   onToggleFavorite: (recipe: Recipe) => void
 }
 
-export function RecipeDetails({ recipe, errorMessage, onClose, onEdit, onDelete, onToggleFavorite }: RecipeDetailsProps) {
+export function RecipeDetails({ locale, recipe, errorMessage, onClose, onEdit, onDelete, onToggleFavorite }: RecipeDetailsProps) {
+  const t = (key: string) => translate(locale, key)
   const [servings, setServings] = useState(recipe.servings)
   const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(new Set())
   const [imageFailed, setImageFailed] = useState(false)
@@ -28,7 +31,7 @@ export function RecipeDetails({ recipe, errorMessage, onClose, onEdit, onDelete,
   return (
     <div className="dialog-backdrop" role="presentation">
       <article className="recipe-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="recipe-detail-title">
-        <button className="icon-button detail-close" type="button" aria-label="Close recipe details" onClick={onClose}>
+        <button className="icon-button detail-close" type="button" aria-label={t('closeDetails')} onClick={onClose}>
           <X aria-hidden="true" />
         </button>
         <div className="detail-image">
@@ -40,16 +43,16 @@ export function RecipeDetails({ recipe, errorMessage, onClose, onEdit, onDelete,
           <span className="category-pill">{recipe.category}</span>
         </div>
         <div className="detail-content">
-          {errorMessage && <p className="form-error" role="alert">{errorMessage}</p>}
+          {errorMessage && <p className="form-error" role="alert">{translateError(locale, errorMessage)}</p>}
           <div className="detail-heading">
             <div>
-              <p className="eyebrow">{recipe.difficulty} · {recipe.prepTimeMinutes + recipe.cookTimeMinutes} min total</p>
+              <p className="eyebrow">{t(recipe.difficulty.toLowerCase())} · {recipe.prepTimeMinutes + recipe.cookTimeMinutes} min {t('total')}</p>
               <h2 id="recipe-detail-title">{recipe.title}</h2>
             </div>
             <button
               className={`favorite-button detail-favorite ${recipe.isFavorite ? 'is-favorite' : ''}`}
               type="button"
-              aria-label={recipe.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={t(recipe.isFavorite ? 'removeFavorites' : 'addFavorites')}
               aria-pressed={recipe.isFavorite}
               onClick={() => onToggleFavorite(recipe)}
             >
@@ -58,12 +61,12 @@ export function RecipeDetails({ recipe, errorMessage, onClose, onEdit, onDelete,
           </div>
           {recipe.description && <p className="detail-description">{recipe.description}</p>}
           <div className="detail-meta">
-            <span><Clock3 aria-hidden="true" /> Prep {recipe.prepTimeMinutes} min</span>
-            <span><Clock3 aria-hidden="true" /> Cook {recipe.cookTimeMinutes} min</span>
+            <span><Clock3 aria-hidden="true" /> {t('prep')} {recipe.prepTimeMinutes} min</span>
+            <span><Clock3 aria-hidden="true" /> {t('cook')} {recipe.cookTimeMinutes} min</span>
             <label className="servings-control">
               <Users aria-hidden="true" />
-              <span>Serves</span>
-              <input type="number" min="1" max="100" step="1" aria-label="Number of servings" value={servings} onChange={(event) => setServings(Math.min(100, Math.max(1, Number(event.target.value) || 1)))} />
+              <span>{t('serves')}</span>
+              <input type="number" min="1" max="100" step="1" aria-label={t('servingsAria')} value={servings} onChange={(event) => setServings(Math.min(100, Math.max(1, Number(event.target.value) || 1)))} />
             </label>
           </div>
 
@@ -75,8 +78,8 @@ export function RecipeDetails({ recipe, errorMessage, onClose, onEdit, onDelete,
 
           <section className="detail-section">
             <div className="detail-section-heading">
-              <h3>Ingredients</h3>
-              <span>{checkedIngredients.size}/{recipe.ingredients.length} checked</span>
+              <h3>{t('ingredientsTitle')}</h3>
+              <span>{checkedIngredients.size}/{recipe.ingredients.length} {t('checked')}</span>
             </div>
             <ul className="ingredient-checklist">
               {recipe.ingredients.map((ingredient) => {
@@ -96,7 +99,7 @@ export function RecipeDetails({ recipe, errorMessage, onClose, onEdit, onDelete,
                           return next
                         })}
                       />
-                      <span>{amount && <strong>{amount} </strong>}{ingredient.name}{ingredient.optional && <small> optional</small>}</span>
+                      <span>{amount && <strong>{amount} </strong>}{ingredient.name}{ingredient.optional && <small> {t('optional')}</small>}</span>
                     </label>
                   </li>
                 )
@@ -105,7 +108,7 @@ export function RecipeDetails({ recipe, errorMessage, onClose, onEdit, onDelete,
           </section>
 
           <section className="detail-section">
-            <h3>Method</h3>
+            <h3>{t('method')}</h3>
             <ol className="method-list">
               {recipe.instructions.map((instruction, index) => (
                 <li key={instruction.id}>
@@ -116,10 +119,10 @@ export function RecipeDetails({ recipe, errorMessage, onClose, onEdit, onDelete,
             </ol>
           </section>
           <div className="detail-actions">
-            {recipe.sourceUrl && <a className="text-button source-link" href={recipe.sourceUrl} target="_blank" rel="noreferrer"><ExternalLink aria-hidden="true" /> Original recipe</a>}
+            {recipe.sourceUrl && <a className="text-button source-link" href={recipe.sourceUrl} target="_blank" rel="noreferrer"><ExternalLink aria-hidden="true" /> {t('originalRecipe')}</a>}
             <div>
-              <button className="secondary-button" type="button" onClick={() => onEdit(recipe)}><Pencil aria-hidden="true" /> Edit</button>
-              <button className="delete-button" type="button" onClick={() => onDelete(recipe)}>Delete</button>
+              <button className="secondary-button" type="button" onClick={() => onEdit(recipe)}><Pencil aria-hidden="true" /> {t('edit')}</button>
+              <button className="delete-button" type="button" onClick={() => onDelete(recipe)}>{t('delete')}</button>
             </div>
           </div>
         </div>

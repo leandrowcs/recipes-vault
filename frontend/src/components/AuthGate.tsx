@@ -1,13 +1,16 @@
 import { LogIn } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { firebaseConfigured, firebaseErrorMessage, firebaseSetupMissing, listenToAuth, ownerEmail, ownerUid, signInWithGoogle, signOutGoogle } from '../services/firebase'
+import { translate, type Locale } from '../lib/locale'
 import type { User } from 'firebase/auth'
 
 interface AuthGateProps {
+  locale: Locale
   children: (user: User) => ReactNode
 }
 
-export function AuthGate({ children }: AuthGateProps) {
+export function AuthGate({ children, locale }: AuthGateProps) {
+  const t = (key: string) => translate(locale, key)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(firebaseConfigured)
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -23,10 +26,10 @@ export function AuthGate({ children }: AuthGateProps) {
       },
       (reason) => {
         setIsLoading(false)
-        setError(firebaseErrorMessage(reason))
+        setError(firebaseErrorMessage(reason, locale))
       },
     )
-  }, [])
+  }, [locale])
 
   async function signIn() {
     setError('')
@@ -34,7 +37,7 @@ export function AuthGate({ children }: AuthGateProps) {
     try {
       await signInWithGoogle()
     } catch (reason) {
-      setError(firebaseErrorMessage(reason))
+      setError(firebaseErrorMessage(reason, locale))
     } finally {
       setIsSigningIn(false)
     }
@@ -46,30 +49,30 @@ export function AuthGate({ children }: AuthGateProps) {
       setUser(null)
       setError('')
     } catch (reason) {
-      setError(firebaseErrorMessage(reason))
+      setError(firebaseErrorMessage(reason, locale))
     }
   }
 
   if (!firebaseConfigured) {
     return (
-      <AuthMessage title="Firebase setup required">
-        <p>These variables were missing when this deployment was built. Add them in Vercel under <strong>Project Settings → Environment Variables</strong>, enable them for the environment you deployed, then redeploy.</p>
+      <AuthMessage locale={locale} title={t('firebaseSetupTitle')}>
+        <p>{t('firebaseSetupBody')}</p>
         <ul>{firebaseSetupMissing.map((name) => <li key={name}><code>{name}</code></li>)}</ul>
-        <p>For local development, add the same values to <code>frontend/.env.local</code>. See the repository README for the setup steps.</p>
+        <p>{t('firebaseLocalBody')}</p>
       </AuthMessage>
     )
   }
 
   if (isLoading) {
-    return <AuthMessage title="Checking your account"><p role="status">Connecting securely to Google…</p></AuthMessage>
+    return <AuthMessage locale={locale} title={t('checkingAccount')}><p role="status">{t('connectingGoogle')}</p></AuthMessage>
   }
 
   if (!user) {
     return (
-      <AuthMessage title="Your recipes, just for you">
-        <p>Sign in with the Google account authorized for this recipe vault.</p>
+      <AuthMessage locale={locale} title={t('authWelcome')}>
+        <p>{t('authPrompt')}</p>
         <button className="primary-button" type="button" disabled={isSigningIn} onClick={() => void signIn()}>
-          <LogIn aria-hidden="true" /> {isSigningIn ? 'Connecting…' : 'Continue with Google'}
+          <LogIn aria-hidden="true" /> {isSigningIn ? t('connecting') : t('continueGoogle')}
         </button>
         {error && <p className="auth-error" role="alert">{error}</p>}
       </AuthMessage>
@@ -78,31 +81,31 @@ export function AuthGate({ children }: AuthGateProps) {
 
   if (user.email?.toLowerCase() !== ownerEmail || !user.emailVerified) {
     return (
-      <AuthMessage title="This account does not have access">
-        <p>Signed in as <strong>{user.email ?? 'an unverified account'}</strong>. Use the authorized, verified Google email configured for this vault.</p>
+      <AuthMessage locale={locale} title={t('accessDenied')}>
+        <p>{t('signedInAs')} <strong>{user.email ?? t('unverifiedAccount')}</strong>. {t('authorizedEmail')}</p>
         {error && <p className="auth-error" role="alert">{error}</p>}
-        <button className="secondary-button" type="button" onClick={() => void signOut()}>Sign out</button>
+        <button className="secondary-button" type="button" onClick={() => void signOut()}>{t('signOut')}</button>
       </AuthMessage>
     )
   }
 
   if (!ownerUid) {
     return (
-      <AuthMessage title="Finish owner-only access setup">
-        <p>Copy this account UID to <code>VITE_OWNER_UID</code> and <code>firestore.rules</code>. Your recipes stay locked until both values match and the rules are deployed.</p>
+      <AuthMessage locale={locale} title={t('finishOwnerSetup')}>
+        <p>{t('ownerUidInstructions')}</p>
         <code className="auth-uid">{user.uid}</code>
-        <p>Then add <code>VITE_OWNER_UID</code> to Vercel and redeploy.</p>
-        <button className="secondary-button" type="button" onClick={() => void signOut()}>Sign out</button>
+        <p>{t('ownerUidVercel')}</p>
+        <button className="secondary-button" type="button" onClick={() => void signOut()}>{t('signOut')}</button>
       </AuthMessage>
     )
   }
 
   if (user.uid !== ownerUid) {
     return (
-      <AuthMessage title="This account does not have access">
-        <p>The signed-in Google account is not the account authorized for this recipe vault.</p>
+      <AuthMessage locale={locale} title={t('accessDenied')}>
+        <p>{t('unauthorizedUid')}</p>
         {error && <p className="auth-error" role="alert">{error}</p>}
-        <button className="secondary-button" type="button" onClick={() => void signOut()}>Sign out</button>
+        <button className="secondary-button" type="button" onClick={() => void signOut()}>{t('signOut')}</button>
       </AuthMessage>
     )
   }
@@ -110,12 +113,12 @@ export function AuthGate({ children }: AuthGateProps) {
   return children(user)
 }
 
-function AuthMessage({ title, children }: { title: string; children: ReactNode }) {
+function AuthMessage({ locale, title, children }: { locale: Locale; title: string; children: ReactNode }) {
   return (
     <main className="auth-shell">
       <section className="auth-card">
         <img className="auth-logo" src="/recipes-vault-logo.svg" alt="" />
-        <p className="eyebrow">YOUR PRIVATE COOKBOOK</p>
+        <p className="eyebrow">{translate(locale, 'privateCookbook')}</p>
         <h1>{title}</h1>
         {children}
       </section>
