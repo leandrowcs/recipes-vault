@@ -2490,7 +2490,7 @@
 
   .recipe-form-dialog,
   .recipe-detail-dialog {
-    width: 900%;
+    width: 100%;
     max-height: 90dvh;
     border-right: 0;
     border-bottom: 0;
