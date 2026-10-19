@@ -1803,6 +1803,20 @@
   font-weight: 600;
 }
 
+.catalog-saved-badge {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 8px;
+  padding: 4px 8px;
+  border: 1px solid rgba(40, 122, 75, 0.24);
+  border-radius: 999px;
+  background: rgba(40, 122, 75, 0.1);
+  color: var(--green, #287a4b);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .catalog-open-link svg {
   width: 13px;
   height: 13px;

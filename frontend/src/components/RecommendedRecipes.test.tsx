@@ -82,4 +82,66 @@ describe('recommended recipes', () => {
       ingredients: [expect.objectContaining({ name: 'Sirloin steak', quantityText: '1 lb', quantity: null })],
     }))
   })
+
+  it('marks recipes already saved by source URL or title on the result card', async () => {
+    const recipes = [
+      { id: '1', name: 'Feijoada', imageUrl: '', sourceUrl: 'https://api.example/recipes/1' },
+      { id: '2', name: 'Bolo', imageUrl: '', sourceUrl: 'https://api.example/recipes/2' },
+    ]
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ recipes }),
+    }))
+    render(<RecommendedRecipes
+      favoriteRecipes={[]}
+      locale="pt-BR"
+      savedRecipes={[
+        {
+          id: 'saved-1',
+          title: 'Receita diferente',
+          description: '',
+          imageUrl: '',
+          sourceUrl: recipes[0].sourceUrl,
+          servings: 2,
+          prepTimeMinutes: 0,
+          cookTimeMinutes: 0,
+          difficulty: 'Easy',
+          category: 'Jantar',
+          tags: [],
+          ingredients: [{ id: 'i-1', name: 'feijão', quantityText: '', quantity: null, unit: '', optional: false }],
+          instructions: [{ id: 's-1', text: 'Cozinhe.' }],
+          isFavorite: false,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        {
+          id: 'saved-2',
+          title: ' Bolo ',
+          description: '',
+          imageUrl: '',
+          sourceUrl: 'https://other.example/recipes/2',
+          servings: 2,
+          prepTimeMinutes: 0,
+          cookTimeMinutes: 0,
+          difficulty: 'Easy',
+          category: 'Sobremesa',
+          tags: [],
+          ingredients: [{ id: 'i-2', name: 'farinha', quantityText: '', quantity: null, unit: '', optional: false }],
+          instructions: [{ id: 's-2', text: 'Asse.' }],
+          isFavorite: false,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ]}
+      onSaveRecipe={vi.fn()}
+    />)
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Buscar catálogo por ingrediente' }), {
+      target: { value: 'frango' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar receitas' }))
+
+    expect(await screen.findAllByText('Já adicionada')).toHaveLength(2)
+    expect(screen.getAllByRole('status', { name: 'Já adicionada' })).toHaveLength(2)
+  })
 })

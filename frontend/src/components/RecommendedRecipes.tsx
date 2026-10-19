@@ -127,6 +127,10 @@ export function RecommendedRecipes({ favoriteRecipes, locale, savedRecipes, onSa
   }, [selectedMeal])
 
   const favorites = new Set(favoriteRecipes.map((name) => name.trim().toLowerCase()).filter(Boolean))
+  const isRecipeSaved = (recipe: Pick<MealCard, 'name' | 'sourceUrl'>) =>
+    savedRecipes.some((savedRecipe) =>
+      savedRecipe.sourceUrl === recipe.sourceUrl ||
+      savedRecipe.title.trim().toLocaleLowerCase() === recipe.name.trim().toLocaleLowerCase())
   const recommendations = [...recipes].sort((first, second) => {
     const firstMatch = favorites.has(first.name.toLowerCase()) ? 1 : 0
     const secondMatch = favorites.has(second.name.toLowerCase()) ? 1 : 0
@@ -189,6 +193,11 @@ export function RecommendedRecipes({ favoriteRecipes, locale, savedRecipes, onSa
                 <div className="recipe-card-content">
                   <div className="recipe-card-heading"><h3>{recipe.name}</h3></div>
                   <p>{t('mealDbRecipe')}</p>
+                  {isRecipeSaved(recipe) && (
+                    <span className="catalog-saved-badge" role="status" aria-label={t('catalogRecipeAdded')}>
+                      {t('catalogRecipeAdded')}
+                    </span>
+                  )}
                   <span className="catalog-open-link">{t('seeIngredientsMethod')} <ArrowUpRight aria-hidden="true" /></span>
                 </div>
               </button>
@@ -205,9 +214,7 @@ export function RecommendedRecipes({ favoriteRecipes, locale, savedRecipes, onSa
           <MealDetailsView
             meal={selectedMeal}
             locale={locale}
-            isSaved={savedRecipes.some((recipe) =>
-              recipe.sourceUrl === selectedMeal.sourceUrl ||
-              recipe.title.trim().toLocaleLowerCase() === selectedMeal.name.trim().toLocaleLowerCase())}
+            isSaved={isRecipeSaved(selectedMeal)}
             onSaveRecipe={onSaveRecipe}
             onClose={() => setSelectedMeal(null)}
           />

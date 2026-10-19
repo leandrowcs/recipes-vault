@@ -52,13 +52,13 @@ function assertDocumentIds<T extends { id: string }>(items: T[], kind: string): 
 }
 
 function readCollection<T extends { id: string }>(
-  documents: DocumentData[],
+  documents: Array<{ id: string; data: () => DocumentData }>,
   isValid: (value: unknown) => value is T,
   kind: string,
 ): T[] {
   const items = documents.map((document) => {
-    const value: unknown = document
-    if (!isValid(value) || !('id' in value) || value.id !== document.id) {
+    const value: unknown = document.data()
+    if (!isValid(value) || value.id !== document.id) {
       throw new Error(`An invalid ${kind} record was found in Firestore. Export or repair it before editing this collection.`)
     }
     return value
