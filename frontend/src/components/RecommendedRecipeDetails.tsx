@@ -14,6 +14,9 @@ interface RecommendedRecipeDetailsProps {
 
 export function RecommendedRecipeDetails({ meal, locale, isSaved, onSaveRecipe, onClose }: RecommendedRecipeDetailsProps) {
   const t = (key: string) => translate(locale, key)
+  const catalogUrl = locale === 'pt-BR'
+    ? 'https://github.com/DenilsonRabelo/API-receitas'
+    : 'https://www.themealdb.com/'
   const [isSaving, setIsSaving] = useState(false)
   const [hasSaved, setHasSaved] = useState(false)
   const [saveError, setSaveError] = useState('')
@@ -102,7 +105,7 @@ export function RecommendedRecipeDetails({ meal, locale, isSaved, onSaveRecipe, 
           )}
           <div className="detail-actions">
             <a className="secondary-button source-link" href={meal.sourceUrl} target="_blank" rel="noreferrer">
-              <ExternalLink aria-hidden="true" /> {t('originalRecipe')}
+              <ExternalLink aria-hidden="true" /> {t('catalogSourceLink')}
             </a>
             <button
               className="primary-button"
@@ -116,7 +119,7 @@ export function RecommendedRecipeDetails({ meal, locale, isSaved, onSaveRecipe, 
             <button className="secondary-button" type="button" onClick={onClose}>{t('close')}</button>
           </div>
           {saveError && <p className="form-error" role="alert">{saveError}</p>}
-          <p className="data-attribution">{t('recipeImageCredits')} <a href="https://www.themealdb.com/" target="_blank" rel="noreferrer">TheMealDB</a> {t('originalSource')}</p>
+          <p className="data-attribution">{t('recipeImageCredits')} <a href={catalogUrl} target="_blank" rel="noreferrer">{t('recipeCatalogProvider')}</a> {t('originalSource')}</p>
         </div>
       </section>
     </div>

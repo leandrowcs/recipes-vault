@@ -200,7 +200,7 @@ describe('recipe collection', () => {
       expect(screen.getByLabelText('Ingrediente')).toBeTruthy()
 
       fireEvent.click(screen.getAllByRole('button', { name: 'Descobrir' })[0])
-      expect(await screen.findByText(/O conteúdo de receitas do TheMealDB/)).toBeTruthy()
+      expect(await screen.findByText(/A API-Receitas fornece receitas em português/)).toBeTruthy()
       expect(screen.getByRole('button', { name: 'Buscar receitas' })).toBeTruthy()
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
         ok: true,

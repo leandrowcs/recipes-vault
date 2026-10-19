@@ -43,6 +43,11 @@ interface RecommendedRecipesProps {
 
 export function RecommendedRecipes({ favoriteRecipes, locale, savedRecipes, onSaveRecipe }: RecommendedRecipesProps) {
   const t = (key: string) => translate(locale, key)
+  const isPortugueseCatalog = locale === 'pt-BR'
+  const catalogEndpoint = isPortugueseCatalog ? '/api/receitas' : '/api/mealdb'
+  const catalogUrl = isPortugueseCatalog
+    ? 'https://github.com/DenilsonRabelo/API-receitas'
+    : 'https://www.themealdb.com/'
   const [ingredient, setIngredient] = useState('')
   const [recipes, setRecipes] = useState<MealCard[]>([])
   const [selectedMeal, setSelectedMeal] = useState<MealDetails | null>(null)
@@ -56,7 +61,7 @@ export function RecommendedRecipes({ favoriteRecipes, locale, savedRecipes, onSa
     setSearched(true)
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/mealdb?ingredient=${encodeURIComponent(ingredient.trim())}`, {
+      const response = await fetch(`${catalogEndpoint}?ingredient=${encodeURIComponent(ingredient.trim())}`, {
         headers: { Accept: 'application/json' },
         signal: AbortSignal.timeout(12_000),
       })
@@ -91,7 +96,7 @@ export function RecommendedRecipes({ favoriteRecipes, locale, savedRecipes, onSa
       ingredients: [],
     })
     try {
-      const response = await fetch(`/api/mealdb?id=${encodeURIComponent(recipe.id)}`, {
+      const response = await fetch(`${catalogEndpoint}?id=${encodeURIComponent(recipe.id)}`, {
         headers: { Accept: 'application/json' },
         signal: AbortSignal.timeout(12_000),
       })
@@ -130,7 +135,7 @@ export function RecommendedRecipes({ favoriteRecipes, locale, savedRecipes, onSa
 
   return (
     <section className="collection-section discovery-section">
-      <p className="locale-data-notice">{t('englishMealDb')}</p>
+      {isPortugueseCatalog && <p className="locale-data-notice">{t('englishMealDb')}</p>}
       <div className="collection-heading">
         <div>
           <p className="eyebrow">{t('mealCatalog')}</p>
@@ -192,7 +197,7 @@ export function RecommendedRecipes({ favoriteRecipes, locale, savedRecipes, onSa
         </div>
       )}
       <p className="data-attribution">
-        {t('mealDbAttribution')} <a href="https://www.themealdb.com/" target="_blank" rel="noreferrer">TheMealDB</a>.
+        {t('mealDbAttribution')} <a href={catalogUrl} target="_blank" rel="noreferrer">{t('recipeCatalogProvider')}</a>.
         {' '}{t('mealDbLicenseNotice')}
       </p>
       {selectedMeal && (

@@ -8,6 +8,30 @@ afterEach(() => {
 })
 
 describe('recommended recipes', () => {
+  it('shows the Portuguese catalog and calls its API', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ recipes: [] }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<RecommendedRecipes favoriteRecipes={[]} locale="pt-BR" savedRecipes={[]} onSaveRecipe={vi.fn()} />)
+
+    expect(screen.getByText('CATÁLOGO DE RECEITAS API-RECEITAS')).toBeTruthy()
+    expect(screen.getByText(/A API-Receitas fornece receitas em português/)).toBeTruthy()
+    fireEvent.change(screen.getByRole('textbox', { name: 'Buscar catálogo por ingrediente' }), {
+      target: { value: 'frango' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar receitas' }))
+
+    expect(await screen.findByText('Nenhuma receita encontrada para esse ingrediente.')).toBeTruthy()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/receitas?ingredient=frango',
+      expect.objectContaining({ headers: { Accept: 'application/json' } }),
+    )
+    expect(screen.getByRole('link', { name: 'API-Receitas' }).getAttribute('href'))
+      .toBe('https://github.com/DenilsonRabelo/API-receitas')
+  })
+
   it('opens and displays the selected recipe details', async () => {
     const recipe = {
       id: '52771',

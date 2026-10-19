@@ -137,4 +137,82 @@ describe('TheMealDB API handler', () => {
       body: { recipes: [{ id: '123', name: 'Sample Meal', sourceUrl: 'https://www.themealdb.com/meal/123' }] },
     })
   })
+
+  describe('API-Receitas handler', () => {
+    async function loadHandler() {
+      vi.resetModules()
+      const module = await import('../../api/receitas')
+      return module.default
+    }
+
+    it('rejects invalid methods and ingredients without contacting the upstream API', async () => {
+      const handler = await loadHandler()
+      const fetchMock = vi.fn()
+      vi.stubGlobal('fetch', fetchMock)
+
+      expect((await invoke(handler, 'POST', '/?ingredient=frango')).status).toBe(405)
+      expect((await invoke(handler, 'GET', '/?ingredient=x')).status).toBe(400)
+      expect((await invoke(handler, 'GET', '/?ingredient=<script>')).status).toBe(400)
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('normalizes catalog results and serves matching details from cache', async () => {
+      const handler = await loadHandler()
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          items: [{
+            id: 5,
+            receita: 'Bolo de Chocolate',
+            ingredientes: '2 xícaras de farinha, 1 xícara de açúcar',
+            modo_preparo: 'Misture e asse.',
+            link_imagem: 'http://unsafe.example/bolo.jpg',
+            tipo: 'doce',
+            IngredientesBase: [{ nomesIngrediente: ['farinha', 'açúcar'] }],
+          }],
+        }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      const search = await invoke(handler, 'GET', '/?ingredient=ACUCAR')
+      expect(search).toMatchObject({
+        status: 200,
+        body: {
+          recipes: [{
+            id: '5',
+            name: 'Bolo de Chocolate',
+            imageUrl: '',
+            sourceUrl: 'https://api-receitas-pi.vercel.app/receitas/5',
+          }],
+        },
+      })
+
+      const details = await invoke(handler, 'GET', '/?id=5')
+      expect(details).toMatchObject({
+        status: 200,
+        body: {
+          meal: {
+            category: 'doce',
+            instructions: 'Misture e asse.',
+            ingredients: [
+              { name: 'farinha', measure: '2 xícaras de farinha' },
+              { name: 'açúcar', measure: '1 xícara de açúcar' },
+            ],
+          },
+        },
+      })
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
+
+    it('reports upstream failures explicitly', async () => {
+      const handler = await loadHandler()
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 503 }))
+
+      expect(await invoke(handler, 'GET', '/?ingredient=frango')).toMatchObject({
+        status: 502,
+        body: { error: 'The recipe catalog is temporarily unavailable. Try again later.' },
+      })
+    })
+  })
 })

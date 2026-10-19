@@ -5,6 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import importRecipe from '../api/import-recipe.ts'
 import mealDb from '../api/mealdb.ts'
 import openFoodFacts from '../api/open-food-facts.ts'
+import receitas from '../api/receitas.ts'
 
 const localRecipeImportApi: Plugin = {
   name: 'local-recipe-import-api',
@@ -31,6 +32,9 @@ const localRecipeImportApi: Plugin = {
 const localFoodApis: Plugin = {
   name: 'local-food-apis',
   configureServer(server) {
+    server.middlewares.use('/api/receitas', (request, response, next) => {
+      void receitas(request, response).catch(next)
+    })
     server.middlewares.use('/api/mealdb', (request, response, next) => {
       void mealDb(request, response).catch(next)
     })
@@ -39,6 +43,9 @@ const localFoodApis: Plugin = {
     })
   },
   configurePreviewServer(server) {
+    server.middlewares.use('/api/receitas', (request, response, next) => {
+      void receitas(request, response).catch(next)
+    })
     server.middlewares.use('/api/mealdb', (request, response, next) => {
       void mealDb(request, response).catch(next)
     })
